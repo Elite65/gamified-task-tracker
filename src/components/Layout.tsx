@@ -19,8 +19,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
     return (
         <div className="flex h-screen bg-tech-bg text-white font-sans selection:bg-white selection:text-black overflow-hidden">
-            {/* Sidebar */}
-            <aside className="w-64 border-r border-tech-border bg-tech-surface/50 flex flex-col p-6">
+            {/* Sidebar (Desktop) */}
+            <aside className="hidden md:flex w-64 border-r border-tech-border bg-tech-surface/50 flex-col p-6">
                 <div className="flex items-center gap-3 mb-10 px-2">
                     <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-black font-bold">
                         SL
@@ -84,11 +84,30 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto relative">
-                <div className="p-8 max-w-7xl mx-auto">
+            <main className="flex-1 overflow-auto relative pb-20 md:pb-0">
+                <div className="p-4 md:p-8 max-w-7xl mx-auto">
                     {children}
                 </div>
             </main>
+
+            {/* Bottom Navigation (Mobile) */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-tech-surface border-t border-tech-border px-6 py-4 flex justify-between items-center z-50 safe-area-bottom">
+                {navItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    return (
+                        <Link
+                            key={item.path}
+                            to={item.path}
+                            className={`flex flex-col items-center gap-1 ${isActive ? 'text-white' : 'text-gray-500'}`}
+                        >
+                            <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-white text-black' : ''}`}>
+                                <item.icon className="w-5 h-5" />
+                            </div>
+                            <span className="text-[10px] font-medium">{item.label}</span>
+                        </Link>
+                    );
+                })}
+            </nav>
         </div>
     );
 };

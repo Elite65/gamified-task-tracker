@@ -43,7 +43,8 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, showTrackerColumn =
 
     return (
         <>
-            <div className="w-full overflow-hidden rounded-xl border border-tech-border bg-tech-surface/50">
+            {/* Desktop Table View */}
+            <div className="hidden md:block w-full overflow-hidden rounded-xl border border-tech-border bg-tech-surface/50">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="border-b border-tech-border text-xs font-mono text-gray-400 uppercase">
@@ -145,6 +146,91 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, showTrackerColumn =
                         </AnimatePresence>
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+                <AnimatePresence>
+                    {tasks.map((task, index) => (
+                        <motion.div
+                            key={task.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="p-4 rounded-xl border border-tech-border bg-tech-surface/50 space-y-3"
+                        >
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className={`font-medium ${task.status === 'COMPLETED' ? 'line-through text-gray-500' : 'text-white'}`}>
+                                        {task.title}
+                                    </div>
+                                    {showTrackerColumn && (
+                                        <div className="text-xs text-gray-400 mt-1">
+                                            {getTrackerName(task.trackerId)}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setEditingTask(task)}
+                                        className="p-2 text-gray-500 hover:text-tech-primary bg-white/5 rounded-lg"
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => deleteTask(task.id)}
+                                        className="p-2 text-gray-500 hover:text-red-400 bg-white/5 rounded-lg"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {task.description && (
+                                <p className="text-xs text-gray-400">{task.description}</p>
+                            )}
+
+                            <div className="flex flex-wrap gap-2 items-center">
+                                <select
+                                    value={task.status}
+                                    onChange={(e) => updateTaskStatus(task.id, e.target.value as TaskStatus)}
+                                    className={`bg-transparent border-none outline-none text-xs font-bold cursor-pointer ${statusColors[task.status]}`}
+                                >
+                                    <option value="YET_TO_START" className="bg-tech-surface text-gray-500">YET TO START</option>
+                                    <option value="STARTED" className="bg-tech-surface text-blue-400">STARTED</option>
+                                    <option value="IN_PROGRESS" className="bg-tech-surface text-amber-400">IN PROGRESS</option>
+                                    <option value="COMPLETED" className="bg-tech-surface text-green-400">COMPLETED</option>
+                                </select>
+
+                                <select
+                                    value={task.difficulty}
+                                    onChange={(e) => updateTask(task.id, { difficulty: e.target.value as Difficulty })}
+                                    className={`px-2 py-1 rounded text-[10px] font-bold border outline-none cursor-pointer ${difficultyColors[task.difficulty]}`}
+                                >
+                                    <option value="EASY" className="bg-tech-surface text-green-400">EASY</option>
+                                    <option value="MEDIUM" className="bg-tech-surface text-blue-400">MEDIUM</option>
+                                    <option value="HARD" className="bg-tech-surface text-amber-400">HARD</option>
+                                    <option value="EPIC" className="bg-tech-surface text-purple-400">EPIC</option>
+                                </select>
+                            </div>
+
+                            <div className="flex gap-1 flex-wrap">
+                                {task.skills.map(skill => (
+                                    <span key={skill} className="px-2 py-1 bg-white/5 rounded text-[10px] text-gray-400">
+                                        {skill}
+                                    </span>
+                                ))}
+                            </div>
+
+                            {task.dueDate && (
+                                <div className="text-[10px] text-gray-500 font-mono pt-2 border-t border-tech-border/50">
+                                    Due: {new Date(task.dueDate).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(', 00:00', '')}
+                                </div>
+                            )}
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
             </div>
 
             {editingTask && (

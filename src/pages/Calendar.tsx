@@ -73,9 +73,9 @@ export const Calendar: React.FC = () => {
 
     return (
         <div className="h-full flex flex-col">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                 <h1 className="text-2xl font-bold">Academic Calendar</h1>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto">
                     <button onClick={prevMonth} className="p-2 hover:bg-white/10 rounded-lg"><ChevronLeft className="w-5 h-5" /></button>
                     <span className="font-mono font-bold w-32 text-center">
                         {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
@@ -84,9 +84,9 @@ export const Calendar: React.FC = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-px border border-tech-border bg-tech-border rounded-lg overflow-hidden">
+            <div className="grid grid-cols-7 gap-px border border-tech-border bg-tech-border rounded-lg overflow-hidden flex-1">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="bg-tech-surface p-3 text-center text-sm font-bold text-gray-400">
+                    <div key={day} className="bg-tech-surface p-2 md:p-3 text-center text-[10px] md:text-sm font-bold text-gray-400">
                         {day}
                     </div>
                 ))}
