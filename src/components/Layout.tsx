@@ -84,7 +84,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto relative pb-20 md:pb-0">
+            <main className="flex-1 overflow-auto relative pb-32 md:pb-0">
                 <div className="p-4 md:p-8 max-w-7xl mx-auto">
                     {children}
                 </div>
