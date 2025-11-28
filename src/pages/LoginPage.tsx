@@ -61,6 +61,11 @@ export const LoginPage: React.FC = () => {
                             required
                         />
                     </div>
+                    <div className="flex justify-end">
+                        <Link to="/forgot-password" className="text-xs text-tech-primary hover:text-white transition-colors">
+                            Forgot Password?
+                        </Link>
+                    </div>
 
                     <button
                         type="submit"
