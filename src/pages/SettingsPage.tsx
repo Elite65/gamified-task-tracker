@@ -163,4 +163,34 @@ export const SettingsPage: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Account Actions */}
+                <div className="bg-tech-surface border border-tech-border rounded-3xl p-8">
+                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                        <Settings className="w-5 h-5" />
+                        Account Actions
+                    </h2>
 
+                    <div className="flex flex-col gap-4">
+                        {user ? (
+                            <button
+                                onClick={logout}
+                                className="flex items-center justify-center gap-2 w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-red-400 font-bold transition-colors"
+                            >
+                                <LogOut className="w-5 h-5" />
+                                LOGOUT
+                            </button>
+                        ) : (
+                            <Link
+                                to="/login"
+                                className="flex items-center justify-center gap-2 w-full py-4 bg-tech-primary text-black rounded-xl font-bold hover:bg-tech-primary/80 transition-colors"
+                            >
+                                <LogIn className="w-5 h-5" />
+                                LOGIN / SYNC
+                            </Link>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
