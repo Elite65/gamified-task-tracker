@@ -8,14 +8,17 @@ export default {
     extend: {
       colors: {
         tech: {
-          bg: '#050510',
-          primary: '#00f3ff',
-          secondary: '#bc13fe',
-          accent: '#f59e0b',
-          surface: 'rgba(255, 255, 255, 0.05)',
-          'surface-hover': 'rgba(255, 255, 255, 0.1)',
-          border: 'rgba(0, 243, 255, 0.2)',
-          'border-active': 'rgba(0, 243, 255, 0.6)',
+          bg: 'var(--color-bg)',
+          primary: 'var(--color-primary)',
+          secondary: 'var(--color-secondary)',
+          accent: '#f59e0b', // Keep static for now or add var
+          surface: 'var(--color-surface)',
+          'surface-hover': 'var(--color-surface-hover)',
+          border: 'var(--color-border)',
+          'border-active': 'var(--color-border-active)',
+          'calendar-border': 'var(--color-calendar-border)',
+          text: 'var(--color-text)',
+          'text-secondary': 'var(--color-text-secondary)',
         }
       },
       fontFamily: {

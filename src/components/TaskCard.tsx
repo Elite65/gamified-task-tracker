@@ -1,98 +1,113 @@
-import React from 'react';
-import { Task, TaskStatus } from '../types';
-import { useGame } from '../context/GameContext';
-import { CheckCircle, Circle, Clock, PlayCircle, Trash2, FileText } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { CheckCircle2, Circle, Clock, Tag, MoreVertical, Edit2 } from 'lucide-react';
+import { Task } from '../types';
+import { TaskEditModal } from './TaskEditModal';
 
 interface TaskCardProps {
     task: Task;
+    onStatusChange: (taskId: string, status: Task['status']) => void;
+    onEdit: (taskId: string, updates: Partial<Task>) => void;
+    onDelete: (taskId: string) => void;
 }
 
-const difficultyColor = {
-    EASY: 'text-green-400 border-green-400/30 bg-green-400/10',
-    MEDIUM: 'text-blue-400 border-blue-400/30 bg-blue-400/10',
-    HARD: 'text-orange-400 border-orange-400/30 bg-orange-400/10',
-    EPIC: 'text-purple-400 border-purple-400/30 bg-purple-400/10',
-};
+export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onEdit, onDelete }) => {
+    const [isEditOpen, setIsEditOpen] = useState(false);
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
-    const { updateTaskStatus, deleteTask } = useGame();
-
-    const nextStatus: Record<TaskStatus, TaskStatus> = {
-        'YET_TO_START': 'STARTED',
-        'STARTED': 'IN_PROGRESS',
-        'IN_PROGRESS': 'COMPLETED',
-        'COMPLETED': 'COMPLETED'
+    const difficultyColors = {
+        EASY: 'text-green-400 border-green-400/30 bg-green-400/10',
+        MEDIUM: 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10',
+        HARD: 'text-orange-400 border-orange-400/30 bg-orange-400/10',
+        EPIC: 'text-red-400 border-red-400/30 bg-red-400/10',
     };
 
-    const handleAdvance = () => {
-        if (task.status !== 'COMPLETED') {
-            updateTaskStatus(task.id, nextStatus[task.status]);
-        }
+    const statusColors = {
+        YET_TO_START: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+        STARTED: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+        IN_PROGRESS: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+        COMPLETED: 'bg-green-500/20 text-green-400 border-green-500/30',
     };
 
     return (
-        <motion.div
-            layout
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="p-4 rounded-lg border border-tech-border bg-tech-surface hover:bg-tech-surface-hover transition-colors group relative"
-        >
-            <div className="flex justify-between items-start mb-2">
-                <span className={`text-xs font-mono px-2 py-0.5 rounded border ${difficultyColor[task.difficulty]}`}>
-                    {task.difficulty}
-                </span>
-                <button
-                    onClick={() => deleteTask(task.id)}
-                    className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                    <Trash2 className="w-4 h-4" />
-                </button>
-            </div>
+        <>
+            <TaskEditModal
+                task={task}
+                isOpen={isEditOpen}
+                onClose={() => setIsEditOpen(false)}
+                onSave={onEdit}
+                onDelete={onDelete}
+            />
 
-            <h4 className="font-bold mb-2 flex items-center gap-2">
-                {task.title}
-                {task.description && (
-                    <div className="relative inline-block group/note">
-                        <FileText className="w-3 h-3 text-gray-400 cursor-help" />
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-black/90 border border-tech-border rounded text-[10px] text-gray-300 pointer-events-none opacity-0 group-hover/note:opacity-100 transition-opacity z-10 whitespace-normal">
-                            {task.description}
+            <div className="group relative bg-tech-surface border border-tech-border rounded-2xl p-5 hover:border-tech-primary/50 transition-all hover:shadow-lg hover:shadow-tech-primary/5">
+                <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${difficultyColors[task.difficulty]}`}>
+                                {task.difficulty}
+                            </span>
+                            <button
+                                onClick={() => {
+                                    const nextStatus = {
+                                        'YET_TO_START': 'STARTED',
+                                        'STARTED': 'IN_PROGRESS',
+                                        'IN_PROGRESS': 'COMPLETED',
+                                        'COMPLETED': 'YET_TO_START'
+                                    }[task.status] as Task['status'];
+                                    onStatusChange(task.id, nextStatus);
+                                }}
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border cursor-pointer hover:opacity-80 transition-opacity ${statusColors[task.status]}`}
+                            >
+                                {task.status.replace(/_/g, ' ')}
+                            </button>
                         </div>
+                        <h3 className={`font-bold text-lg ${task.status === 'COMPLETED' ? 'text-tech-text-secondary line-through' : 'text-tech-text'}`}>
+                            {task.title}
+                        </h3>
                     </div>
-                )}
-            </h4>
 
-            {task.skills.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-4">
-                    {task.skills.map(skill => (
-                        <span key={skill} className="text-[10px] font-mono text-gray-400 px-1 border border-gray-700 rounded">
-                            {skill}
-                        </span>
-                    ))}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setIsEditOpen(true)}
+                            className="p-2 text-tech-text-secondary hover:text-tech-text hover:bg-tech-primary/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                        >
+                            <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => onStatusChange(task.id, 'COMPLETED')}
+                            className={`p-1 rounded-full transition-colors ${task.status === 'COMPLETED' ? 'text-green-400' : 'text-tech-text-secondary hover:text-green-400'}`}
+                        >
+                            {task.status === 'COMPLETED' ? (
+                                <CheckCircle2 className="w-6 h-6" />
+                            ) : (
+                                <Circle className="w-6 h-6" />
+                            )}
+                        </button>
+                    </div>
                 </div>
-            )}
 
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
-                <div className="text-xs text-gray-500 font-mono">
-                    {new Date(task.createdAt).toLocaleDateString()}
+                <div className="flex items-center gap-4 text-xs text-tech-text-secondary">
+                    {task.dueDate && (
+                        <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+                        </div>
+                    )}
+                    {task.skills.length > 0 && (
+                        <div className="flex items-center gap-1.5">
+                            <Tag className="w-3.5 h-3.5" />
+                            <div className="flex gap-1">
+                                {task.skills.slice(0, 2).map(skill => (
+                                    <span key={skill} className="bg-tech-primary/10 px-1.5 py-0.5 rounded text-[10px] text-tech-text-secondary">
+                                        {skill}
+                                    </span>
+                                ))}
+                                {task.skills.length > 2 && (
+                                    <span className="bg-tech-primary/10 px-1.5 py-0.5 rounded text-[10px] text-tech-text-secondary">+{task.skills.length - 2}</span>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
-
-                {task.status !== 'COMPLETED' ? (
-                    <button
-                        onClick={handleAdvance}
-                        className="flex items-center gap-1 text-xs text-tech-primary hover:text-white transition-colors"
-                    >
-                        <span>ADVANCE</span>
-                        <PlayCircle className="w-4 h-4" />
-                    </button>
-                ) : (
-                    <span className="flex items-center gap-1 text-xs text-green-400">
-                        <CheckCircle className="w-4 h-4" />
-                        DONE
-                    </span>
-                )}
             </div>
-        </motion.div>
+        </>
     );
 };

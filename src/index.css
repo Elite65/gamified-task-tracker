@@ -1,19 +1,32 @@
 @import "tailwindcss";
 
 @theme {
-  --color-tech-bg: #191919;
-  --color-tech-surface: #202020;
-  --color-tech-surface-hover: #2a2a2a;
-  --color-tech-primary: #ffffff;
-  --color-tech-secondary: #a0a0a0;
-  --color-tech-accent: #e0e0e0;
-  --color-tech-border: #333333;
-  --color-tech-border-active: #555555;
-
   --font-mono: "JetBrains Mono", monospace;
   --font-sans: "Inter", sans-serif;
-
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  --color-tech-bg: var(--color-bg);
+  --color-tech-surface: var(--color-surface);
+  --color-tech-surface-hover: var(--color-surface-hover);
+  --color-tech-border: var(--color-border);
+  --color-tech-border-active: var(--color-border-active);
+  --color-tech-primary: var(--color-primary);
+  --color-tech-secondary: var(--color-secondary);
+  --color-tech-text: var(--color-text);
+  --color-tech-text-secondary: var(--color-text-secondary);
+}
+
+:root {
+  /* Default Theme (Dark) */
+  --color-bg: #09090b;
+  --color-surface: #18181b;
+  --color-surface-hover: #27272a;
+  --color-border: #27272a;
+  --color-border-active: #3f3f46;
+  --color-primary: #8b5cf6;
+  --color-secondary: #10b981;
+  --color-text: #ffffff;
+  --color-text-secondary: #a1a1aa;
 }
 
 @layer base {

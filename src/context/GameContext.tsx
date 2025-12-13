@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Task, Tracker, UserStats, INITIAL_STATS, TaskStatus } from '../types';
+import { Task, Tracker, UserStats, INITIAL_STATS, TaskStatus, SkillStats } from '../types';
 import { useToast } from './ToastContext';
-import { account, databases, DATABASE_ID, COLLECTIONS } from '../lib/appwrite';
+import { account, databases, DATABASE_ID, COLLECTIONS, storage, BUCKET_ID } from '../lib/appwrite';
 import { ID, Query } from 'appwrite';
+import { themes } from '../lib/themes';
 
 interface GameContextType {
     user: any;
@@ -17,6 +18,12 @@ interface GameContextType {
     deleteTracker: (trackerId: string) => void;
     resetStats: () => void;
     setStats: (stats: UserStats) => void;
+    updateSkills: (newSkills: Record<string, SkillStats>) => void;
+    updateProfile: (name: string, avatarFile?: File, bannerFile?: File) => Promise<void>;
+    updateGlobalBanner: (file: File) => Promise<void>;
+    resetGlobalBanner: () => Promise<void>;
+    currentTheme: string;
+    setTheme: (themeId: string) => void;
     logout: () => void;
 }
 
@@ -39,6 +46,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [tasks, setTasks] = useState<Task[]>([]);
     const [trackers, setTrackers] = useState<Tracker[]>([]);
     const [userStats, setUserStats] = useState<UserStats>(JSON.parse(JSON.stringify(INITIAL_STATS)));
+    const [currentTheme, setCurrentTheme] = useState<string>('default');
+
+    // Apply Theme Colors
+    useEffect(() => {
+        const theme = themes.find(t => t.id === currentTheme) || themes[0];
+        const root = document.documentElement;
+
+        Object.entries(theme.colors).forEach(([key, value]) => {
+            // Handle special mapping for background -> --color-bg
+            const cssKey = key === 'background' ? 'bg' : key.replace(/([A-Z])/g, '-$1').toLowerCase();
+            const cssVar = `--color-${cssKey}`;
+            root.style.setProperty(cssVar, value);
+        });
+
+        // Ensure calendar-border is set (fallback to border if not explicit)
+        if (!theme.colors.calendarBorder) {
+            root.style.setProperty('--color-calendar-border', theme.colors.border);
+        }
+    }, [currentTheme]);
 
     // 1. Check Auth Status on Mount
     useEffect(() => {
@@ -49,6 +75,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             const session = await account.get();
             setUser(session);
+            if (session.prefs?.themeId) {
+                setCurrentTheme(session.prefs.themeId);
+            }
             await loadCloudData(session.$id);
         } catch (error) {
             // Not logged in, load local data
@@ -145,28 +174,47 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         skillGain *= multiplier;
 
         const newStats = { ...userStats };
-        newStats.skills = { ...newStats.skills }; // Deep copy skills to prevent mutation of shared references
+        // Deep copy skills to prevent mutation of shared references
+        newStats.skills = Object.fromEntries(
+            Object.entries(newStats.skills).map(([k, v]) => [k, { ...v }])
+        );
+
         newStats.xp = Math.max(0, newStats.xp + xpGain);
 
-        if (newStats.xp >= newStats.nextLevelXp) {
+        // Level Up Logic (Only if gaining XP)
+        if (xpGain > 0 && newStats.xp >= newStats.nextLevelXp) {
             newStats.level += 1;
+            newStats.xp = newStats.xp - newStats.nextLevelXp;
             newStats.nextLevelXp = Math.floor(newStats.nextLevelXp * 1.5);
+            showToast(`Level Up! You are now Level ${newStats.level}`, { type: 'success' });
         }
 
         taskSkills.forEach(skillName => {
-            let targetStat = 'Intelligence';
-            const lowerSkill = skillName.toLowerCase();
-            if (['coding', 'logic', 'math'].some(s => lowerSkill.includes(s))) targetStat = 'Intelligence';
-            if (['focus', 'reading', 'study'].some(s => lowerSkill.includes(s))) targetStat = 'Focus';
-            if (['design', 'art', 'writing'].some(s => lowerSkill.includes(s))) targetStat = 'Creativity';
-            if (['workout', 'gym', 'health'].some(s => lowerSkill.includes(s))) targetStat = 'Endurance';
-            if (['speed', 'deadline', 'sprint'].some(s => lowerSkill.includes(s))) targetStat = 'Speed';
-            if (['debug', 'test', 'detail'].some(s => lowerSkill.includes(s))) targetStat = 'Precision';
+            // Case insensitive matching
+            const lowerSkillTag = skillName.toLowerCase();
 
-            if (newStats.skills[targetStat]) {
-                newStats.skills[targetStat] = {
-                    ...newStats.skills[targetStat],
-                    value: Math.max(0, Math.min(100, newStats.skills[targetStat].value + skillGain))
+            // Find matching skill in user stats
+            const matchingSkillKey = Object.keys(newStats.skills).find(key => {
+                const lowerKey = key.toLowerCase();
+                return lowerKey.includes(lowerSkillTag) || lowerSkillTag.includes(lowerKey);
+            });
+
+            if (matchingSkillKey) {
+                const currentSkill = newStats.skills[matchingSkillKey];
+                let newValue = Math.max(0, currentSkill.value + skillGain);
+                let newLevel = currentSkill.level;
+
+                // Leveling Logic: Check if we crossed 100 (Only if gaining)
+                if (skillGain > 0 && newValue >= 100) {
+                    const levelsGained = Math.floor(newValue / 100);
+                    newLevel += levelsGained;
+                    newValue = newValue % 100;
+                }
+
+                newStats.skills[matchingSkillKey] = {
+                    ...currentSkill,
+                    value: newValue,
+                    level: newLevel
                 };
             }
         });
@@ -247,6 +295,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (status === 'COMPLETED' && oldStatus !== 'COMPLETED') {
             gainXp(task.difficulty, task.skills, 1);
             showToast('Mission Complete! XP Gained.', { type: 'success' });
+        } else if (oldStatus === 'COMPLETED' && status !== 'COMPLETED') {
+            // Reverse XP (Deduct)
+            gainXp(task.difficulty, task.skills, -1);
+            showToast('Mission Reopened. XP Reverted.', { type: 'info' });
         }
 
         // Cloud Sync
@@ -410,6 +462,124 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const updateSkills = async (newSkills: Record<string, SkillStats>) => {
+        const newStats = { ...userStats, skills: newSkills };
+        setUserStats(newStats);
+        showToast('Skills updated.', { type: 'success' });
+
+        if (user) {
+            try {
+                await databases.updateDocument(DATABASE_ID, COLLECTIONS.USER_STATS, user.$id, {
+                    ...newStats,
+                    skills: JSON.stringify(newSkills)
+                });
+            } catch (e: any) {
+                console.error('Failed to update skills in cloud', e);
+                showToast(`Sync Failed: ${e.message}`, { type: 'error' });
+            }
+        }
+    };
+
+    const updateProfile = async (name: string, avatarFile?: File, bannerFile?: File) => {
+        if (!user) return;
+
+        try {
+            // 1. Update Name
+            if (name !== user.name) {
+                await account.updateName(name);
+            }
+
+            let newPrefs = { ...user.prefs };
+            let prefsChanged = false;
+
+            // 2. Upload Avatar if provided
+            if (avatarFile) {
+                // Upload file to bucket
+                const file = await storage.createFile(BUCKET_ID, ID.unique(), avatarFile);
+                newPrefs.avatarId = file.$id;
+                prefsChanged = true;
+            }
+
+            // 3. Upload Banner if provided
+            if (bannerFile) {
+                const file = await storage.createFile(BUCKET_ID, ID.unique(), bannerFile);
+                newPrefs.bannerId = file.$id;
+                prefsChanged = true;
+            }
+
+            // 4. Update Prefs if changed
+            if (prefsChanged) {
+                await account.updatePrefs(newPrefs);
+            }
+
+            // 5. Refresh User Session
+            const updatedSession = await account.get();
+            setUser(updatedSession);
+            showToast('Profile updated successfully!', { type: 'success' });
+
+        } catch (error: any) {
+            console.error('Failed to update profile:', error);
+            showToast(`Update Failed: ${error.message}`, { type: 'error' });
+        }
+    };
+
+    const updateGlobalBanner = async (file: File) => {
+        if (!user) return;
+        try {
+            const uploadedFile = await storage.createFile(BUCKET_ID, ID.unique(), file);
+            await account.updatePrefs({
+                ...user.prefs,
+                globalBannerId: uploadedFile.$id
+            });
+            const updatedSession = await account.get();
+            setUser(updatedSession);
+            showToast('Global banner updated!', { type: 'success' });
+        } catch (error: any) {
+            console.error('Failed to update global banner:', error);
+            showToast(`Update Failed: ${error.message}`, { type: 'error' });
+        }
+    };
+
+    const resetGlobalBanner = async () => {
+        if (!user) return;
+        try {
+            await account.updatePrefs({
+                ...user.prefs,
+                globalBannerId: null // or undefined, depending on Appwrite behavior for clearing
+            });
+            // Note: Appwrite might not clear key with null, might need to set to empty string or handle differently.
+            // Usually setting to null works for clearing optional prefs in some systems, but for Appwrite prefs (JSON), 
+            // we might need to just omit it or set to empty string. Let's try null first or empty string.
+            // Actually, let's use empty string to be safe if it's a string field.
+            await account.updatePrefs({
+                ...user.prefs,
+                globalBannerId: ''
+            });
+
+            const updatedSession = await account.get();
+            setUser(updatedSession);
+            showToast('Global banner reset to default.', { type: 'success' });
+        } catch (error: any) {
+            console.error('Failed to reset global banner:', error);
+            showToast(`Reset Failed: ${error.message}`, { type: 'error' });
+        }
+    };
+
+    const setTheme = async (themeId: string) => {
+        setCurrentTheme(themeId);
+
+        if (user) {
+            try {
+                await account.updatePrefs({
+                    ...user.prefs,
+                    themeId: themeId
+                });
+            } catch (error: any) {
+                console.error('Failed to save theme preference:', error);
+            }
+        }
+    };
+
     return (
         <GameContext.Provider value={{
             user,
@@ -424,10 +594,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             deleteTracker,
             resetStats,
             setStats,
+            updateSkills,
+            updateProfile,
+            updateGlobalBanner,
+            resetGlobalBanner,
+            currentTheme,
+            setTheme,
             logout
         }}>
             {children}
         </GameContext.Provider>
     );
 };
-

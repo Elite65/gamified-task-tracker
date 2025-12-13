@@ -5,6 +5,8 @@ import { useTime } from '../hooks/useTime';
 import { Plus, ArrowRight, Activity, Target, BookOpen, Zap, Clock, Calendar as CalendarIcon, X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HexSkillGraph } from '../components/HexSkillGraph';
+import { EditSkillsModal } from '../components/EditSkillsModal';
+import { Edit2 } from 'lucide-react';
 
 const iconMap: Record<string, any> = {
     Target,
@@ -16,13 +18,16 @@ const iconMap: Record<string, any> = {
 const availableIcons = ['Target', 'BookOpen', 'Zap', 'Activity'];
 const availableColors = ['tech-primary', 'tech-secondary', 'tech-accent', 'blue-400', 'green-400', 'purple-400', 'amber-400'];
 export const Dashboard: React.FC = () => {
-    const { trackers, userStats, addTracker, tasks } = useGame();
+    const { trackers, userStats, addTracker, tasks, updateSkills } = useGame();
     const currentTime = useTime();
     const [isAddingTracker, setIsAddingTracker] = useState(false);
+    const [isEditingSkills, setIsEditingSkills] = useState(false);
     const [newTrackerName, setNewTrackerName] = useState('');
     const [newTrackerType, setNewTrackerType] = useState('daily');
     const [newTrackerIcon, setNewTrackerIcon] = useState('Target');
     const [newTrackerColor, setNewTrackerColor] = useState('tech-primary');
+    const [quote, setQuote] = useState('Keep your stats aligned.');
+    const [isEditingQuote, setIsEditingQuote] = useState(false);
 
     // Calculate task progress
     // Calculate task progress (Weighted)
@@ -51,47 +56,71 @@ export const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 relative">
+        <div className="space-y-8 relative text-tech-text">
             {/* Header / Widgets Row */}
             <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {/* Clock / Date Widget */}
                 <div className="col-span-1 p-6 rounded-3xl bg-tech-surface border border-tech-border flex flex-col justify-between h-48">
                     <div>
-                        <Clock className="w-6 h-6 text-white mb-4" />
+                        <Clock className="w-6 h-6 text-tech-primary mb-4" />
                         <h2 className="text-3xl font-bold">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</h2>
-                        <p className="text-gray-400">{currentTime.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                        <p className="text-tech-text-secondary">{currentTime.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}</p>
                     </div>
                 </div>
 
                 {/* Progress Widget */}
                 <div className="col-span-1 p-6 rounded-3xl bg-tech-surface border border-tech-border flex flex-col justify-center h-48 space-y-4">
                     <div>
-                        <div className="flex justify-between text-xs text-gray-400 mb-1">
+                        <div className="flex justify-between text-xs text-tech-text-secondary mb-1">
                             <span>Mission Completion</span>
                             <span>{Math.round(taskProgress)}%</span>
                         </div>
-                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
-                            <div className="h-full bg-white rounded-full" style={{ width: `${taskProgress}%` }} />
+                        <div className="h-2 bg-tech-surface-hover rounded-full overflow-hidden">
+                            <div className="h-full bg-tech-primary rounded-full" style={{ width: `${taskProgress}%` }} />
                         </div>
                     </div>
                     <div>
-                        <div className="flex justify-between text-xs text-gray-400 mb-1">
+                        <div className="flex justify-between text-xs text-tech-text-secondary mb-1">
                             <span>Level {userStats.level}</span>
                             <span>{Math.round((userStats.xp / userStats.nextLevelXp) * 100)}%</span>
                         </div>
-                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
-                            <div className="h-full bg-white rounded-full" style={{ width: `${(userStats.xp / userStats.nextLevelXp) * 100}%` }} />
+                        <div className="h-2 bg-tech-surface-hover rounded-full overflow-hidden">
+                            <div className="h-full bg-tech-secondary rounded-full" style={{ width: `${(userStats.xp / userStats.nextLevelXp) * 100}%` }} />
                         </div>
                     </div>
                 </div>
 
                 {/* Hex Graph Widget */}
-                <div className="col-span-2 p-6 rounded-3xl bg-tech-surface border border-tech-border h-48 flex items-center relative overflow-hidden">
+                <div className="col-span-2 p-6 rounded-3xl bg-tech-surface border border-tech-border h-48 flex items-center relative overflow-hidden group">
                     <div className="flex-1 z-10">
                         <h3 className="font-bold text-lg mb-1">Life Balance</h3>
-                        <p className="text-sm text-gray-400">Keep your stats aligned.</p>
+                        {isEditingQuote ? (
+                            <input
+                                type="text"
+                                value={quote}
+                                onChange={(e) => setQuote(e.target.value)}
+                                onBlur={() => setIsEditingQuote(false)}
+                                onKeyDown={(e) => e.key === 'Enter' && setIsEditingQuote(false)}
+                                className="text-sm text-tech-text-secondary bg-transparent border-b border-tech-primary outline-none w-full"
+                                autoFocus
+                            />
+                        ) : (
+                            <p
+                                onClick={() => setIsEditingQuote(true)}
+                                className="text-sm text-tech-text-secondary cursor-pointer hover:text-tech-text transition-colors"
+                            >
+                                "{quote}"
+                            </p>
+                        )}
+                        <button
+                            onClick={() => setIsEditingSkills(true)}
+                            className="mt-4 flex items-center gap-2 text-xs font-bold text-tech-primary hover:text-tech-text transition-colors"
+                        >
+                            <Edit2 className="w-3 h-3" />
+                            Edit Skills
+                        </button>
                     </div>
-                    <div className="w-48 h-48 -mr-4">
+                    <div className="w-64 h-48">
                         <HexSkillGraph stats={userStats} />
                     </div>
                 </div>
@@ -106,7 +135,7 @@ export const Dashboard: React.FC = () => {
                     </h2>
                     <button
                         onClick={() => setIsAddingTracker(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-white text-black hover:bg-gray-200 rounded-xl transition-all font-medium text-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-tech-primary text-black hover:bg-tech-primary/80 rounded-xl transition-all font-medium text-sm"
                     >
                         <Plus className="w-4 h-4" />
                         <span>New Page</span>
@@ -125,7 +154,7 @@ export const Dashboard: React.FC = () => {
                             >
                                 <Link
                                     to={`/tracker/${tracker.id}`}
-                                    className="block h-40 p-6 rounded-3xl bg-tech-surface border border-tech-border hover:border-white/20 transition-all group relative overflow-hidden"
+                                    className="block h-40 p-6 rounded-3xl bg-tech-surface border border-tech-border hover:border-tech-primary/50 transition-all group relative overflow-hidden"
                                 >
                                     {/* Cover Image Placeholder */}
                                     <div className={`absolute inset-x-0 top-0 h-16 bg-${tracker.themeColor}/10 group-hover:bg-${tracker.themeColor}/20 transition-colors`} />
@@ -133,11 +162,11 @@ export const Dashboard: React.FC = () => {
                                     <div className="relative z-10 pt-8">
                                         <div className="flex items-center gap-3 mb-2">
                                             <div className="p-2 rounded-lg bg-tech-bg border border-tech-border shadow-sm">
-                                                <Icon className="w-5 h-5 text-white" />
+                                                <Icon className="w-5 h-5 text-tech-text" />
                                             </div>
                                             <h3 className="font-bold text-lg">{tracker.name}</h3>
                                         </div>
-                                        <p className="text-xs text-gray-400 uppercase tracking-wider font-medium ml-1">{tracker.type}</p>
+                                        <p className="text-xs text-tech-text-secondary uppercase tracking-wider font-medium ml-1">{tracker.type}</p>
                                     </div>
                                 </Link>
                             </motion.div>
@@ -158,29 +187,29 @@ export const Dashboard: React.FC = () => {
                         >
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold">Create New Page</h3>
-                                <button onClick={() => setIsAddingTracker(false)} className="p-2 hover:bg-white/10 rounded-full">
+                                <button onClick={() => setIsAddingTracker(false)} className="p-2 hover:bg-tech-surface-hover rounded-full">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
 
                             <form onSubmit={handleAddTracker} className="space-y-6">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">Page Name</label>
+                                    <label className="block text-xs font-bold text-tech-text-secondary mb-2 uppercase">Page Name</label>
                                     <input
                                         value={newTrackerName}
                                         onChange={e => setNewTrackerName(e.target.value)}
-                                        className="w-full bg-black/20 border border-tech-border rounded-xl p-3 focus:border-white outline-none transition-colors"
+                                        className="w-full bg-tech-bg border border-tech-border rounded-xl p-3 focus:border-tech-primary outline-none transition-colors text-tech-text"
                                         placeholder="e.g. Biology 101"
                                         autoFocus
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">Type</label>
+                                    <label className="block text-xs font-bold text-tech-text-secondary mb-2 uppercase">Type</label>
                                     <select
                                         value={newTrackerType}
                                         onChange={e => setNewTrackerType(e.target.value)}
-                                        className="w-full bg-black/20 border border-tech-border rounded-xl p-3 focus:border-white outline-none transition-colors"
+                                        className="w-full bg-tech-bg border border-tech-border rounded-xl p-3 focus:border-tech-primary outline-none transition-colors text-tech-text"
                                     >
                                         <option value="daily">Daily</option>
                                         <option value="assignment">Assignment</option>
@@ -190,7 +219,7 @@ export const Dashboard: React.FC = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">Icon</label>
+                                    <label className="block text-xs font-bold text-tech-text-secondary mb-2 uppercase">Icon</label>
                                     <div className="flex gap-4">
                                         {availableIcons.map(icon => {
                                             const Icon = iconMap[icon];
@@ -200,8 +229,8 @@ export const Dashboard: React.FC = () => {
                                                     type="button"
                                                     onClick={() => setNewTrackerIcon(icon)}
                                                     className={`p-3 rounded-xl border transition-all ${newTrackerIcon === icon
-                                                        ? 'bg-white text-black border-white'
-                                                        : 'bg-black/20 border-tech-border hover:border-white/50'
+                                                        ? 'bg-tech-primary text-black border-tech-primary'
+                                                        : 'bg-tech-bg border-tech-border hover:border-tech-primary/50'
                                                         }`}
                                                 >
                                                     <Icon className="w-5 h-5" />
@@ -213,7 +242,7 @@ export const Dashboard: React.FC = () => {
 
                                 <button
                                     type="submit"
-                                    className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                                    className="w-full py-3 bg-tech-primary text-black font-bold rounded-xl hover:bg-tech-primary/80 transition-colors"
                                 >
                                     Create Page
                                 </button>
@@ -222,6 +251,13 @@ export const Dashboard: React.FC = () => {
                     </div>
                 )}
             </AnimatePresence>
+
+            <EditSkillsModal
+                isOpen={isEditingSkills}
+                onClose={() => setIsEditingSkills(false)}
+                currentSkills={userStats.skills}
+                onSave={updateSkills}
+            />
         </div>
     );
 };

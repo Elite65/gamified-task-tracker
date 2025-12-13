@@ -47,7 +47,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, showTrackerColumn =
             <div className="hidden md:block w-full overflow-hidden rounded-xl border border-tech-border bg-tech-surface/50">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="border-b border-tech-border text-xs font-mono text-gray-400 uppercase">
+                        <tr className="border-b border-tech-border text-xs font-mono text-tech-text-secondary uppercase">
                             <th className="p-4 font-medium w-12">#</th>
                             <th className="p-4 font-medium">Mission</th>
                             {showTrackerColumn && <th className="p-4 font-medium">Module</th>}
@@ -66,29 +66,29 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, showTrackerColumn =
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: 20 }}
                                     transition={{ delay: index * 0.05 }}
-                                    className="group border-b border-tech-border/50 hover:bg-white/5 transition-colors"
+                                    className="group border-b border-tech-border hover:bg-tech-surface-hover transition-colors"
                                 >
-                                    <td className="p-4 text-gray-500 text-xs font-mono">{index + 1}</td>
+                                    <td className="p-4 text-tech-text-secondary text-xs font-mono">{index + 1}</td>
                                     <td className="p-4 font-medium">
-                                        <div className={task.status === 'COMPLETED' ? 'line-through text-gray-500' : 'text-white'}>
+                                        <div className={task.status === 'COMPLETED' ? 'line-through text-tech-text-secondary' : 'text-tech-text'}>
                                             {task.title}
                                             {task.description && (
                                                 <div className="relative inline-block ml-2 group/note">
-                                                    <FileText className="w-3 h-3 text-gray-400 inline cursor-help" />
-                                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-black/90 border border-tech-border rounded text-[10px] text-gray-300 pointer-events-none opacity-0 group-hover/note:opacity-100 transition-opacity z-10 whitespace-normal">
+                                                    <FileText className="w-3 h-3 text-tech-text-secondary inline cursor-help" />
+                                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-tech-surface border border-tech-border rounded text-[10px] text-tech-text pointer-events-none opacity-0 group-hover/note:opacity-100 transition-opacity z-10 whitespace-normal shadow-lg">
                                                         {task.description}
                                                     </div>
                                                 </div>
                                             )}
                                         </div>
                                         {task.dueDate && (
-                                            <div className="text-[10px] text-gray-500 mt-1 font-mono">
+                                            <div className="text-[10px] text-tech-text-secondary mt-1 font-mono">
                                                 Due: {new Date(task.dueDate).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(', 00:00', '')}
                                             </div>
                                         )}
                                     </td>
                                     {showTrackerColumn && (
-                                        <td className="p-4 text-sm text-gray-400">
+                                        <td className="p-4 text-sm text-tech-text-secondary">
                                             {getTrackerName(task.trackerId)}
                                         </td>
                                     )}
@@ -98,7 +98,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, showTrackerColumn =
                                             onChange={(e) => updateTaskStatus(task.id, e.target.value as TaskStatus)}
                                             className={`bg-transparent border-none outline-none text-xs font-bold cursor-pointer ${statusColors[task.status]}`}
                                         >
-                                            <option value="YET_TO_START" className="bg-tech-surface text-gray-500">YET TO START</option>
+                                            <option value="YET_TO_START" className="bg-tech-surface text-tech-text-secondary">YET TO START</option>
                                             <option value="STARTED" className="bg-tech-surface text-blue-400">STARTED</option>
                                             <option value="IN_PROGRESS" className="bg-tech-surface text-amber-400">IN PROGRESS</option>
                                             <option value="COMPLETED" className="bg-tech-surface text-green-400">COMPLETED</option>

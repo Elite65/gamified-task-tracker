@@ -32,7 +32,7 @@ export const CoursesPage: React.FC = () => {
                 </div>
                 <div>
                     <h1 className="text-3xl font-bold">All Courses & Trackers</h1>
-                    <p className="text-gray-400">Manage your active learning modules.</p>
+                    <p className="text-tech-text-secondary">Manage your active learning modules.</p>
                 </div>
             </div>
 
@@ -62,13 +62,13 @@ export const CoursesPage: React.FC = () => {
                                             </div>
                                             <h3 className="font-bold text-lg">{tracker.name}</h3>
                                         </div>
-                                        <p className="text-xs text-gray-400 uppercase tracking-wider font-medium ml-1">{tracker.type}</p>
+                                        <p className="text-xs text-tech-text-secondary uppercase tracking-wider font-medium ml-1">{tracker.type}</p>
                                     </div>
 
                                     <div className="relative z-10 flex justify-end">
                                         <button
                                             onClick={(e) => handleDelete(e, tracker.id, tracker.name)}
-                                            className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                                            className="p-2 text-tech-text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                                             title="Delete Course"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -81,7 +81,7 @@ export const CoursesPage: React.FC = () => {
                 </AnimatePresence>
 
                 {trackers.length === 0 && (
-                    <div className="col-span-full flex flex-col items-center justify-center p-12 border border-dashed border-tech-border rounded-3xl text-gray-500">
+                    <div className="col-span-full flex flex-col items-center justify-center p-12 border border-dashed border-tech-border rounded-3xl text-tech-text-secondary">
                         <AlertTriangle className="w-10 h-10 mb-4 opacity-50" />
                         <p>No courses found. Create one from the Dashboard!</p>
                     </div>

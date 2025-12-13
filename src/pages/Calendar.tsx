@@ -44,19 +44,19 @@ export const Calendar: React.FC = () => {
             days.push(
                 <div
                     key={i}
-                    className={`min-h-[100px] border border-tech-border p-2 ${isCurrentMonth ? 'bg-tech-surface/50' : 'bg-transparent opacity-30'
+                    className={`min-h-[100px] p-2 ${isCurrentMonth ? 'bg-tech-surface/50' : 'bg-transparent opacity-30'
                         }`}
                 >
                     {isCurrentMonth && (
                         <>
-                            <div className="text-right text-sm text-gray-500 mb-2">{dayNumber}</div>
+                            <div className="text-right text-sm text-tech-text-secondary mb-2">{dayNumber}</div>
                             <div className="space-y-1">
                                 {dayTasks.map(task => (
                                     <motion.div
                                         key={task.id}
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
-                                        className="text-[10px] p-1 rounded bg-white/10 border border-white/5 truncate"
+                                        className="text-[10px] p-1 rounded bg-tech-primary/10 border border-tech-primary/20 truncate text-tech-text"
                                         title={task.title}
                                     >
                                         {task.title}
@@ -84,9 +84,9 @@ export const Calendar: React.FC = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-px border border-tech-border bg-tech-border rounded-lg overflow-hidden flex-1">
+            <div className="grid grid-cols-7 gap-px border border-tech-border bg-tech-calendar-border rounded-lg overflow-hidden flex-1">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="bg-tech-surface p-2 md:p-3 text-center text-[10px] md:text-sm font-bold text-gray-400">
+                    <div key={day} className="bg-tech-surface p-2 md:p-3 text-center text-[10px] md:text-sm font-bold text-tech-text-secondary">
                         {day}
                     </div>
                 ))}

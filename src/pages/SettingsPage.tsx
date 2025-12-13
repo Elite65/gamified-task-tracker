@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { Settings, RefreshCw, Save, AlertTriangle, LogOut, LogIn } from 'lucide-react';
+import { Settings, RefreshCw, Save, AlertTriangle, LogOut, LogIn, Palette } from 'lucide-react';
 import { UserStats } from '../types';
+import { themes } from '../lib/themes';
 
 export const SettingsPage: React.FC = () => {
-    const { user, userStats, resetStats, setStats, logout } = useGame();
+    const { user, userStats, resetStats, setStats, updateProfile, logout, currentTheme, setTheme } = useGame();
     const [editedStats, setEditedStats] = useState<UserStats>(userStats);
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditingStats, setIsEditingStats] = useState(false);
     const [confirmReset, setConfirmReset] = useState(false);
+
+    // Profile Editing State
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [profileName, setProfileName] = useState(user?.name || '');
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
     const handleStatChange = (skill: string, value: number) => {
         setEditedStats(prev => ({
@@ -23,9 +29,9 @@ export const SettingsPage: React.FC = () => {
         }));
     };
 
-    const handleSave = () => {
+    const handleSaveStats = () => {
         setStats(editedStats);
-        setIsEditing(false);
+        setIsEditingStats(false);
     };
 
     const handleReset = () => {
@@ -34,19 +40,58 @@ export const SettingsPage: React.FC = () => {
         setConfirmReset(false);
     };
 
+    const handleSaveProfile = async () => {
+        if (profileName) {
+            await updateProfile(profileName, avatarFile || undefined);
+            setIsEditingProfile(false);
+        }
+    };
+
     return (
-        <div className="h-full flex flex-col max-w-3xl mx-auto">
+        <div className="h-full flex flex-col max-w-3xl mx-auto text-tech-text">
             <div className="flex items-center gap-4 mb-8">
                 <div className="p-3 bg-tech-surface rounded-xl border border-tech-border">
                     <Settings className="w-6 h-6 text-tech-primary" />
                 </div>
                 <div>
                     <h1 className="text-3xl font-bold">System Settings</h1>
-                    <p className="text-gray-400">Manage your profile and data.</p>
+                    <p className="text-tech-text-secondary">Manage your profile and data.</p>
                 </div>
             </div>
 
             <div className="space-y-6">
+                {/* Appearance Section */}
+                <div className="bg-tech-surface border border-tech-border rounded-3xl p-8">
+                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                        <Palette className="w-5 h-5" />
+                        Appearance
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {themes.map(theme => (
+                            <button
+                                key={theme.id}
+                                onClick={() => setTheme(theme.id)}
+                                className={`p-4 rounded-xl border transition-all text-left group relative overflow-hidden ${currentTheme === theme.id
+                                    ? 'border-tech-primary ring-1 ring-tech-primary'
+                                    : 'border-tech-border hover:border-tech-primary/50'
+                                    }`}
+                                style={{ background: theme.colors.background }}
+                            >
+                                {/* Theme Preview */}
+                                <div className="flex gap-2 mb-3">
+                                    <div className="w-6 h-6 rounded-full border border-tech-border/20" style={{ background: theme.colors.primary }}></div>
+                                    <div className="w-6 h-6 rounded-full border border-tech-border/20" style={{ background: theme.colors.secondary }}></div>
+                                    <div className="w-6 h-6 rounded-full border border-tech-border/20" style={{ background: theme.colors.surface }}></div>
+                                </div>
+                                <span className="font-bold block" style={{ color: theme.colors.text }}>{theme.name}</span>
+                                {currentTheme === theme.id && (
+                                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-tech-primary"></div>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Stats Management Section */}
                 <div className="bg-tech-surface border border-tech-border rounded-3xl p-8">
                     <div className="flex items-center justify-between mb-6">
@@ -54,23 +99,23 @@ export const SettingsPage: React.FC = () => {
                             <RefreshCw className="w-5 h-5" />
                             Stats Configuration
                         </h2>
-                        {!isEditing ? (
+                        {!isEditingStats ? (
                             <button
-                                onClick={() => { setIsEditing(true); setEditedStats(userStats); }}
-                                className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm font-bold transition-colors"
+                                onClick={() => { setIsEditingStats(true); setEditedStats(userStats); }}
+                                className="px-4 py-2 bg-tech-surface-hover hover:bg-tech-border rounded-lg text-sm font-bold transition-colors"
                             >
                                 EDIT STATS
                             </button>
                         ) : (
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => setIsEditing(false)}
-                                    className="px-4 py-2 hover:bg-white/10 rounded-lg text-sm transition-colors"
+                                    onClick={() => setIsEditingStats(false)}
+                                    className="px-4 py-2 hover:bg-tech-surface-hover rounded-lg text-sm transition-colors"
                                 >
                                     CANCEL
                                 </button>
                                 <button
-                                    onClick={handleSave}
+                                    onClick={handleSaveStats}
                                     className="flex items-center gap-2 px-4 py-2 bg-tech-primary text-black rounded-lg text-sm font-bold hover:bg-tech-primary/80 transition-colors"
                                 >
                                     <Save className="w-4 h-4" />
@@ -82,47 +127,47 @@ export const SettingsPage: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Level & XP */}
-                        <div className="space-y-4 p-4 bg-black/20 rounded-xl border border-tech-border/50">
-                            <h3 className="font-mono text-gray-400 text-xs uppercase">Core Metrics</h3>
+                        <div className="space-y-4 p-4 bg-tech-bg/50 rounded-xl border border-tech-border/50">
+                            <h3 className="font-mono text-tech-text-secondary text-xs uppercase">Core Metrics</h3>
                             <div>
                                 <label className="block text-sm font-bold mb-1">Level</label>
                                 <input
                                     type="number"
-                                    disabled={!isEditing}
-                                    value={isEditing ? editedStats.level : userStats.level}
+                                    disabled={!isEditingStats}
+                                    value={isEditingStats ? editedStats.level : userStats.level}
                                     onChange={e => setEditedStats(prev => ({ ...prev, level: parseInt(e.target.value) || 1 }))}
-                                    className="w-full bg-black/30 border border-tech-border rounded p-2 disabled:opacity-50"
+                                    className="w-full bg-tech-bg border border-tech-border rounded p-2 disabled:opacity-50 text-tech-text"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-bold mb-1">XP</label>
                                 <input
                                     type="number"
-                                    disabled={!isEditing}
-                                    value={isEditing ? editedStats.xp : userStats.xp}
+                                    disabled={!isEditingStats}
+                                    value={isEditingStats ? editedStats.xp : userStats.xp}
                                     onChange={e => setEditedStats(prev => ({ ...prev, xp: parseInt(e.target.value) || 0 }))}
-                                    className="w-full bg-black/30 border border-tech-border rounded p-2 disabled:opacity-50"
+                                    className="w-full bg-tech-bg border border-tech-border rounded p-2 disabled:opacity-50 text-tech-text"
                                 />
                             </div>
                         </div>
 
                         {/* Skills */}
-                        <div className="space-y-4 p-4 bg-black/20 rounded-xl border border-tech-border/50">
-                            <h3 className="font-mono text-gray-400 text-xs uppercase">Skill Matrix (0-100)</h3>
+                        <div className="space-y-4 p-4 bg-tech-bg/50 rounded-xl border border-tech-border/50">
+                            <h3 className="font-mono text-tech-text-secondary text-xs uppercase">Skill Matrix (0-100)</h3>
                             {Object.entries(userStats.skills).map(([skill, data]) => (
                                 <div key={skill} className="flex items-center gap-4">
-                                    <label className="w-24 text-sm font-medium text-gray-300">{skill}</label>
+                                    <label className="w-24 text-sm font-medium text-tech-text-secondary">{skill}</label>
                                     <input
                                         type="range"
                                         min="0"
                                         max="100"
-                                        disabled={!isEditing}
-                                        value={isEditing ? editedStats.skills[skill].value : data.value}
+                                        disabled={!isEditingStats}
+                                        value={isEditingStats ? editedStats.skills[skill].value : data.value}
                                         onChange={e => handleStatChange(skill, parseInt(e.target.value))}
                                         className="flex-1 accent-tech-primary"
                                     />
-                                    <span className="w-8 text-right text-sm font-mono">
-                                        {isEditing ? Math.round(editedStats.skills[skill].value) : Math.round(data.value)}
+                                    <span className="w-8 text-right text-sm font-mono text-tech-text">
+                                        {isEditingStats ? Math.round(editedStats.skills[skill].value) : Math.round(data.value)}
                                     </span>
                                 </div>
                             ))}
@@ -135,7 +180,7 @@ export const SettingsPage: React.FC = () => {
                             <AlertTriangle className="w-4 h-4" />
                             Danger Zone
                         </h3>
-                        <p className="text-sm text-gray-500 mb-4">Irreversible actions regarding your progress data.</p>
+                        <p className="text-sm text-tech-text-secondary mb-4">Irreversible actions regarding your progress data.</p>
                         {confirmReset ? (
                             <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left-4">
                                 <p className="text-red-400 font-bold text-sm">ARE YOU SURE?</p>
@@ -147,7 +192,7 @@ export const SettingsPage: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={() => setConfirmReset(false)}
-                                    className="px-4 py-2 hover:bg-white/10 rounded-lg text-sm transition-colors"
+                                    className="px-4 py-2 hover:bg-tech-surface-hover rounded-lg text-sm transition-colors"
                                 >
                                     CANCEL
                                 </button>
@@ -163,6 +208,7 @@ export const SettingsPage: React.FC = () => {
                     </div>
                 </div>
 
+
                 {/* Account Actions */}
                 <div className="bg-tech-surface border border-tech-border rounded-3xl p-8">
                     <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
@@ -174,7 +220,7 @@ export const SettingsPage: React.FC = () => {
                         {user ? (
                             <button
                                 onClick={logout}
-                                className="flex items-center justify-center gap-2 w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-red-400 font-bold transition-colors"
+                                className="flex items-center justify-center gap-2 w-full py-4 bg-tech-surface-hover hover:bg-tech-border border border-tech-border rounded-xl text-red-400 font-bold transition-colors"
                             >
                                 <LogOut className="w-5 h-5" />
                                 LOGOUT
