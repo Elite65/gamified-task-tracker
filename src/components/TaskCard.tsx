@@ -29,11 +29,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onEdit
 
     return (
         <>
-            <EditTaskModal
-                task={task}
-                onClose={() => setIsEditOpen(false)}
-                onDelete={onDelete}
-            />
+            {isEditOpen && (
+                <EditTaskModal
+                    task={task}
+                    onClose={() => setIsEditOpen(false)}
+                    onDelete={onDelete}
+                />
+            )}
 
             <div className="group relative bg-tech-surface border border-tech-border rounded-2xl p-5 hover:border-tech-primary/50 transition-all hover:shadow-lg hover:shadow-tech-primary/5">
                 <div className="flex justify-between items-start mb-3">
