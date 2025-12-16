@@ -212,7 +212,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     Clock/Date can be added to Dashboard content if needed.
                 */}
 
-                <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full pb-32 md:pb-0 relative z-10">
+                <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full pb-48 md:pb-0 relative z-10">
                     {children}
                 </div>
             </main>
