@@ -15,10 +15,13 @@ import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 
+import { ThemePreloader } from './components/ThemePreloader';
+
 function App() {
     return (
         <ToastProvider>
             <GameProvider>
+                <ThemePreloader />
                 <BrowserRouter>
                     <Layout>
                         <Routes>
