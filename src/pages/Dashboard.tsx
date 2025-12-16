@@ -26,8 +26,13 @@ export const Dashboard: React.FC = () => {
     const [newTrackerType, setNewTrackerType] = useState('daily');
     const [newTrackerIcon, setNewTrackerIcon] = useState('Target');
     const [newTrackerColor, setNewTrackerColor] = useState('tech-primary');
-    const [quote, setQuote] = useState('Keep your stats aligned.');
+    const [quote, setQuote] = useState(() => localStorage.getItem('gtt_quote') || 'Keep your stats aligned.');
     const [isEditingQuote, setIsEditingQuote] = useState(false);
+
+    // Persist quote
+    React.useEffect(() => {
+        localStorage.setItem('gtt_quote', quote);
+    }, [quote]);
 
     // Calculate task progress
     // Calculate task progress (Weighted)

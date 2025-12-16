@@ -237,6 +237,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, showTrackerColumn =
                 <EditTaskModal
                     task={editingTask}
                     onClose={() => setEditingTask(null)}
+                    onDelete={deleteTask}
                 />
             )}
         </>

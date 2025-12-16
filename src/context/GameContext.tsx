@@ -404,9 +404,23 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const resetStats = async () => {
+        // Create fresh stats but PRESERVE existing skill definitions (keys)
         const freshStats = JSON.parse(JSON.stringify(INITIAL_STATS));
+
+        // Rebuild skills object: keep the name, reset value/level
+        const preservedSkills: Record<string, SkillStats> = {};
+        Object.keys(userStats.skills).forEach(key => {
+            preservedSkills[key] = {
+                name: userStats.skills[key].name,
+                value: 0,
+                level: 1
+            };
+        });
+
+        freshStats.skills = preservedSkills;
+
         setUserStats(freshStats);
-        showToast('Stats reset to zero.', { type: 'info' });
+        showToast('Stats reset to zero (Skills preserved).', { type: 'info' });
 
         if (user) {
             try {

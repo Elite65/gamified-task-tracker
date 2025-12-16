@@ -8,12 +8,13 @@ interface DateInputProps {
     required?: boolean;
 }
 
-export const DateInput: React.FC<DateInputProps> = ({
+export const DateInput: React.FC<DateInputProps & { label?: string }> = ({
     value,
     onChange,
     placeholder = "DD/MM/YYYY",
     className = "",
-    required = false
+    required = false,
+    label
 }) => {
     const [displayValue, setDisplayValue] = useState(value);
 
@@ -44,14 +45,21 @@ export const DateInput: React.FC<DateInputProps> = ({
     };
 
     return (
-        <input
-            type="text"
-            value={displayValue}
-            onChange={handleChange}
-            placeholder={placeholder}
-            className={className}
-            maxLength={10}
-            required={required}
-        />
+        <div className={className}>
+            {label && (
+                <label className="block text-xs font-mono text-gray-400 mb-1 uppercase">
+                    {label}
+                </label>
+            )}
+            <input
+                type="text"
+                value={displayValue}
+                onChange={handleChange}
+                placeholder={placeholder}
+                className="w-full bg-black/30 border border-tech-border rounded-lg p-3 focus:border-tech-primary outline-none transition-colors text-white"
+                maxLength={10}
+                required={required}
+            />
+        </div>
     );
 };

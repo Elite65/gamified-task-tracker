@@ -171,6 +171,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <main className="flex-1 overflow-auto relative flex flex-col bg-tech-bg">
 
                 {/* Global Banner */}
+                {/* Global Banner */}
                 {user && (
                     <div
                         className="relative w-full aspect-[1024/329] max-h-[450px] min-h-[150px] shrink-0 group transition-all duration-500 bg-tech-surface"
@@ -206,20 +207,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     </div>
                 )}
 
-                {/* Mobile Header (Overlay or Below?) - Keeping it below banner for now, but sticky */}
-                <header className="md:hidden flex items-center justify-between p-4 border-b border-tech-border bg-tech-surface/80 backdrop-blur-md sticky top-0 z-40">
-                    <div className="max-w-[200px]">
-                        <ProfileSection />
-                    </div>
-                    <div className="text-right">
-                        <div className="text-lg font-mono font-bold leading-none">
-                            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                        <div className="text-[10px] text-gray-500">
-                            {currentTime.toLocaleDateString([], { weekday: 'short', day: 'numeric' })}
-                        </div>
-                    </div>
-                </header>
+                {/* Mobile Header Removed to clear space for Modals. 
+                    Profile access moved to Bottom Nav. 
+                    Clock/Date can be added to Dashboard content if needed.
+                */}
 
                 <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full pb-32 md:pb-0 relative z-10">
                     {children}
@@ -227,19 +218,38 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </main>
 
             {/* Bottom Navigation (Mobile) */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-tech-surface border-t border-tech-border px-6 py-4 flex justify-between items-center z-50 safe-area-bottom">
+            <nav className="md:hidden fixed bottom-6 left-4 right-4 bg-tech-surface/90 backdrop-blur-xl border border-tech-border rounded-2xl px-2 py-2 flex justify-between items-center z-[90] shadow-2xl safe-area-bottom">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.path;
+                    const isSettings = item.label === 'Settings';
+
                     return (
                         <Link
                             key={item.path}
                             to={item.path}
-                            className={`flex flex-col items-center gap-1 ${isActive ? 'text-white' : 'text-gray-500'}`}
+                            className={`flex flex-col items-center gap-1 flex-1 relative ${isActive ? 'text-tech-primary' : 'text-gray-500'}`}
                         >
-                            <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-white text-black' : ''}`}>
-                                <item.icon className="w-5 h-5" />
-                            </div>
-                            <span className="text-[10px] font-medium">{item.label}</span>
+                            {isSettings && user ? (
+                                // Avatar for Settings Tab
+                                <div className={`w-8 h-8 rounded-full overflow-hidden border-2 ${isActive ? 'border-tech-primary shadow-lg shadow-tech-primary/20' : 'border-transparent opacity-70'}`}>
+                                    {avatarUrl ? (
+                                        <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full bg-tech-surface-hover flex items-center justify-center text-[10px] font-bold text-white">
+                                            {user.name.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-tech-primary/10' : ''}`}>
+                                    <item.icon className={`w-6 h-6 ${isActive ? 'fill-current' : 'stroke-current'}`} strokeWidth={isActive ? 0 : 2} />
+                                </div>
+                            )}
+
+                            {/* Active Indicator Dot */}
+                            {isActive && !isSettings && (
+                                <span className="absolute -bottom-1 w-1 h-1 bg-tech-primary rounded-full" />
+                            )}
                         </Link>
                     );
                 })}
