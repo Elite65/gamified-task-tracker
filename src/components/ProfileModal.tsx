@@ -150,7 +150,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                     </div>
 
                     {/* Profile Content */}
-                    <div className="px-8 pb-8 -mt-16 flex-1 overflow-y-auto custom-scrollbar relative z-10">
+                    <div className="px-8 pb-32 -mt-16 flex-1 overflow-y-auto custom-scrollbar relative z-10">
 
                         {/* Avatar & Basic Info */}
                         <div className="flex flex-col md:flex-row gap-6 items-start">

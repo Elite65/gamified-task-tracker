@@ -73,7 +73,7 @@ export const EditSkillsModal: React.FC<EditSkillsModalProps> = ({ isOpen, onClos
                             ))}
                         </div>
 
-                        <div className="mt-6 space-y-4 pt-4 border-t border-tech-border pb-10 md:pb-0">
+                        <div className="mt-6 space-y-4 pt-4 border-t border-tech-border pb-24 md:pb-0">
                             <form onSubmit={handleAddSkill} className="flex gap-2">
                                 <input
                                     value={newSkillName}

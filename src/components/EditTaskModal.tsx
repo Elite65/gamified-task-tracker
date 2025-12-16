@@ -110,7 +110,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1 pb-20 md:pb-6">
+                <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1 pb-32 md:pb-6">
                     {/* Title */}
                     <div>
                         <label className="block text-xs font-mono text-gray-400 mb-1 uppercase">Mission Title</label>
