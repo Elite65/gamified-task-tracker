@@ -218,41 +218,74 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </main>
 
             {/* Bottom Navigation (Mobile) */}
-            <nav className="md:hidden fixed bottom-6 left-4 right-4 bg-tech-surface/90 backdrop-blur-xl border border-tech-border rounded-2xl px-2 py-2 flex justify-between items-center z-[90] shadow-2xl safe-area-bottom">
-                {navItems.map((item) => {
-                    const isActive = location.pathname === item.path;
-                    const isSettings = item.label === 'Settings';
+            <nav className="md:hidden fixed bottom-6 left-4 right-4 bg-tech-surface/95 backdrop-blur-xl border border-tech-border rounded-2xl px-2 py-2 flex justify-between items-end z-[90] shadow-2xl safe-area-bottom">
 
-                    return (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={`flex flex-col items-center gap-1 flex-1 relative ${isActive ? 'text-tech-primary' : 'text-gray-500'}`}
-                        >
-                            {isSettings && user ? (
-                                // Avatar for Settings Tab
-                                <div className={`w-8 h-8 rounded-full overflow-hidden border-2 ${isActive ? 'border-tech-primary shadow-lg shadow-tech-primary/20' : 'border-transparent opacity-70'}`}>
-                                    {avatarUrl ? (
-                                        <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full bg-tech-surface-hover flex items-center justify-center text-[10px] font-bold text-white">
-                                            {user.name.charAt(0).toUpperCase()}
-                                        </div>
-                                    )}
-                                </div>
+                {/* 1. Dashboard */}
+                <Link
+                    to="/"
+                    className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/' ? 'text-tech-primary' : 'text-gray-500'}`}
+                >
+                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/' ? 'bg-tech-primary/10' : ''}`}>
+                        <LayoutGrid className="w-6 h-6" strokeWidth={location.pathname === '/' ? 2.5 : 2} />
+                    </div>
+                    {location.pathname === '/' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
+                </Link>
+
+                {/* 2. Tasks */}
+                <Link
+                    to="/tasks"
+                    className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/tasks' ? 'text-tech-primary' : 'text-gray-500'}`}
+                >
+                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/tasks' ? 'bg-tech-primary/10' : ''}`}>
+                        <CheckSquare className="w-6 h-6" strokeWidth={location.pathname === '/tasks' ? 2.5 : 2} />
+                    </div>
+                    {location.pathname === '/tasks' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
+                </Link>
+
+                {/* 3. CENTER: Profile & Time */}
+                <button
+                    onClick={() => setIsProfileOpen(true)}
+                    className="flex flex-col items-center gap-1 flex-1 relative -top-6"
+                >
+                    <div className="w-14 h-14 rounded-full p-1 bg-tech-bg border border-tech-border shadow-xl flex items-center justify-center relative z-10 transition-transform active:scale-95">
+                        <div className="w-full h-full rounded-full overflow-hidden border border-white/10">
+                            {user && avatarUrl ? (
+                                <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover" />
                             ) : (
-                                <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-tech-primary/10' : ''}`}>
-                                    <item.icon className={`w-6 h-6 ${isActive ? 'fill-current' : 'stroke-current'}`} strokeWidth={isActive ? 0 : 2} />
+                                <div className="w-full h-full bg-tech-surface-hover flex items-center justify-center text-sm font-bold text-white">
+                                    {user?.name?.charAt(0).toUpperCase() || 'U'}
                                 </div>
                             )}
+                        </div>
+                    </div>
+                    {/* Time Display Badge */}
+                    <div className="bg-tech-surface border border-tech-border px-2 py-0.5 rounded-full text-[10px] font-mono font-bold text-tech-primary shadow-sm -mt-2 z-20">
+                        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).replace('AM', '').replace('PM', '')}
+                    </div>
+                </button>
 
-                            {/* Active Indicator Dot */}
-                            {isActive && !isSettings && (
-                                <span className="absolute -bottom-1 w-1 h-1 bg-tech-primary rounded-full" />
-                            )}
-                        </Link>
-                    );
-                })}
+                {/* 4. Courses */}
+                <Link
+                    to="/courses"
+                    className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/courses' ? 'text-tech-primary' : 'text-gray-500'}`}
+                >
+                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/courses' ? 'bg-tech-primary/10' : ''}`}>
+                        <BookOpen className="w-6 h-6" strokeWidth={location.pathname === '/courses' ? 2.5 : 2} />
+                    </div>
+                    {location.pathname === '/courses' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
+                </Link>
+
+                {/* 5. Settings */}
+                <Link
+                    to="/settings"
+                    className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/settings' ? 'text-tech-primary' : 'text-gray-500'}`}
+                >
+                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/settings' ? 'bg-tech-primary/10' : ''}`}>
+                        <Settings className="w-6 h-6" strokeWidth={location.pathname === '/settings' ? 2.5 : 2} />
+                    </div>
+                    {location.pathname === '/settings' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
+                </Link>
+
             </nav>
         </div>
     );
