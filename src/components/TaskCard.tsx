@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Circle, Clock, Tag, MoreVertical, Edit2 } from 'lucide-react';
 import { Task } from '../types';
-import { TaskEditModal } from './TaskEditModal';
+import { EditTaskModal } from './EditTaskModal';
 
 interface TaskCardProps {
     task: Task;
@@ -29,11 +29,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onEdit
 
     return (
         <>
-            <TaskEditModal
+            <EditTaskModal
                 task={task}
-                isOpen={isEditOpen}
                 onClose={() => setIsEditOpen(false)}
-                onSave={onEdit}
                 onDelete={onDelete}
             />
 
