@@ -113,7 +113,7 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
 
     if (!isOpen) return null;
 
-    import { createPortal } from 'react-dom';
+
 
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm text-tech-text">
@@ -292,5 +292,5 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
         document.body
     );
 };
-};
+
 
