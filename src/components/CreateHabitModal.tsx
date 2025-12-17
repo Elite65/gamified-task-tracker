@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Calendar, Clock, BarChart2, Repeat, CheckCircle2, Save } from 'lucide-react';
+import { X, Plus, Calendar, Clock, BarChart2, Repeat, CheckCircle2, Save, Trash2 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { DateInput } from './DateInput';
 import { Habit, HabitType } from '../types';
@@ -11,7 +11,7 @@ interface HabitModalProps {
 }
 
 export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initialData }) => {
-    const { addHabit, updateHabit } = useGame();
+    const { addHabit, updateHabit, deleteHabit } = useGame();
     const isEditing = !!initialData;
 
     // Form State
@@ -246,14 +246,32 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
                     </div>
 
                     {/* Submit Button */}
-                    <button
-                        type="submit"
-                        disabled={!title}
-                        className="w-full py-4 bg-tech-primary text-black font-bold rounded-xl hover:bg-tech-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 mt-8"
-                    >
-                        {isEditing ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                        {isEditing ? 'Update Protocol' : 'Initialize Habit'}
-                    </button>
+                    <div className="flex gap-3 mt-8">
+                        {isEditing && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (window.confirm('Are you sure you want to delete this habit protocol? This cannot be undone.')) {
+                                        if (initialData?.id) {
+                                            deleteHabit(initialData.id);
+                                        }
+                                        onClose();
+                                    }
+                                }}
+                                className="p-4 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-colors"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
+                        )}
+                        <button
+                            type="submit"
+                            disabled={!title}
+                            className="flex-1 py-4 bg-tech-primary text-black font-bold rounded-xl hover:bg-tech-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                        >
+                            {isEditing ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                            {isEditing ? 'Update Protocol' : 'Initialize Habit'}
+                        </button>
+                    </div>
 
                 </form>
             </div>

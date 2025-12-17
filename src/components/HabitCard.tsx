@@ -103,8 +103,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
                             </button>
                         </div>
                         <p className="text-xs text-tech-text-secondary flex items-center gap-1">
-                            <TrendingUp className="w-3 h-3" />
-                            Day {Math.ceil((Date.now() - habit.startDate) / 86400000) + 1} of {habit.durationDays}
+                            Day {Math.floor((Date.now() - habit.startDate) / 86400000) + 1} of {habit.durationDays}
                         </p>
                     </div>
 
