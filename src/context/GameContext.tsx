@@ -247,7 +247,57 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const checkAndRegisterSkills = async (skillNames: string[]) => {
+        const newStats = { ...userStats };
+        let hasChanges = false;
+
+        // Deep copy skills
+        newStats.skills = Object.fromEntries(
+            Object.entries(newStats.skills).map(([k, v]) => [k, { ...v }])
+        );
+
+        skillNames.forEach(skillName => {
+            // Ignore special "quadrant" skills
+            if (skillName.startsWith('quadrant:')) return;
+
+            const lowerSkillTag = skillName.toLowerCase();
+            const exists = Object.keys(newStats.skills).some(k => k.toLowerCase() === lowerSkillTag);
+
+            if (!exists) {
+                // Register new skill
+                // Capitalize first letter for display quality
+                const displayName = skillName.charAt(0).toUpperCase() + skillName.slice(1);
+
+                newStats.skills[displayName] = {
+                    name: displayName,
+                    value: 0,
+                    level: 1
+                };
+                hasChanges = true;
+            }
+        });
+
+        if (hasChanges) {
+            setUserStats(newStats);
+            showToast('New skills registered to profile.', { type: 'success' });
+
+            if (user) {
+                try {
+                    await databases.updateDocument(DATABASE_ID, COLLECTIONS.USER_STATS, user.$id, {
+                        ...newStats,
+                        skills: JSON.stringify(newStats.skills)
+                    });
+                } catch (e: any) {
+                    console.error('Failed to sync new skills', e);
+                }
+            }
+        }
+    };
+
     const addTask = async (taskData: Omit<Task, 'id' | 'createdAt'>) => {
+        // 1. Check for new skills and register them
+        checkAndRegisterSkills(taskData.skills);
+
         const newTask: Task = {
             ...taskData,
             id: user ? ID.unique() : crypto.randomUUID(),
@@ -313,6 +363,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => {
+        // 1. Check for new skills if they are being updated
+        if (updates.skills) {
+            checkAndRegisterSkills(updates.skills);
+        }
+
         // Optimistic Update
         setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
         showToast('Mission parameters updated.', { type: 'success' });
