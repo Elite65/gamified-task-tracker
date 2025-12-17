@@ -26,6 +26,28 @@ export interface Tracker {
     icon: string; // Lucide icon name
 }
 
+export type HabitType = 'TIME' | 'QUANTITY';
+
+export interface Habit {
+    id: string;
+    userId: string;
+    title: string;
+    type: HabitType;
+    goalAmount: number; // e.g. 15 (mins) or 10 (pages)
+    unit: string; // e.g. 'mins', 'pages', 'liters'
+    startDate: number; // Timestamp
+    durationDays: number;
+    carryOver: boolean;
+    themeColor: string;
+}
+
+export interface HabitLog {
+    id: string;
+    habitId: string;
+    date: string; // YYYY-MM-DD
+    value: number; // Amount completed
+}
+
 export interface SkillStats {
     name: string;
     value: number; // 0-100 for the hex graph

@@ -7,6 +7,7 @@ import { Dashboard } from './pages/Dashboard';
 import { TrackerView } from './pages/TrackerView';
 import { Calendar } from './pages/Calendar';
 import { TasksPage } from './pages/TasksPage';
+import { HabitsPage } from './pages/HabitsPage';
 import { CoursesPage } from './pages/CoursesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
@@ -28,6 +29,7 @@ function App() {
                             <Route path="/" element={<Dashboard />} />
                             <Route path="/calendar" element={<Calendar />} />
                             <Route path="/tasks" element={<TasksPage />} />
+                            <Route path="/habits" element={<HabitsPage />} />
                             <Route path="/courses" element={<CoursesPage />} />
                             <Route path="/settings" element={<SettingsPage />} />
                             <Route path="/login" element={<LoginPage />} />

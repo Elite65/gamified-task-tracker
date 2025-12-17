@@ -16,7 +16,9 @@ export const DATABASE_ID = 'gamified-task-tracker';
 export const COLLECTIONS = {
     TASKS: 'tasks',
     TRACKERS: 'trackers',
-    USER_STATS: 'user_stats'
+    USER_STATS: 'user_stats',
+    HABITS: 'habits',
+    HABIT_LOGS: 'habit_logs'
 };
 
 export const BUCKET_ID = 'user-avatars';

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Task, Tracker, UserStats, INITIAL_STATS, TaskStatus, SkillStats } from '../types';
+import { Task, Tracker, UserStats, INITIAL_STATS, TaskStatus, SkillStats, Habit, HabitLog } from '../types';
 import { useToast } from './ToastContext';
 import { account, databases, DATABASE_ID, COLLECTIONS, storage, BUCKET_ID } from '../lib/appwrite';
 import { ID, Query } from 'appwrite';
@@ -10,6 +10,8 @@ interface GameContextType {
     tasks: Task[];
     trackers: Tracker[];
     userStats: UserStats;
+    habits: Habit[];
+    habitLogs: HabitLog[];
     addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
     updateTaskStatus: (taskId: string, status: TaskStatus) => void;
     updateTask: (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void;
@@ -25,6 +27,9 @@ interface GameContextType {
     currentTheme: string;
     setTheme: (themeId: string) => void;
     logout: () => void;
+    addHabit: (habit: Omit<Habit, 'id'>) => void;
+    deleteHabit: (habitId: string) => void;
+    logHabit: (habitId: string, date: string, value: number) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -45,6 +50,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Load from local storage or use defaults (Initial state)
     const [tasks, setTasks] = useState<Task[]>([]);
     const [trackers, setTrackers] = useState<Tracker[]>([]);
+    const [habits, setHabits] = useState<Habit[]>([]);
+    const [habitLogs, setHabitLogs] = useState<HabitLog[]>([]);
     const [userStats, setUserStats] = useState<UserStats>(JSON.parse(JSON.stringify(INITIAL_STATS)));
     const [currentTheme, setCurrentTheme] = useState<string>('default');
 
@@ -90,6 +97,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loadLocalData = () => {
         const savedTasks = localStorage.getItem('gtt_tasks');
         const savedTrackers = localStorage.getItem('gtt_trackers');
+        const savedHabits = localStorage.getItem('gtt_habits');
+        const savedHabitLogs = localStorage.getItem('gtt_habit_logs');
         const savedStats = localStorage.getItem('gtt_stats');
 
         setTasks(savedTasks ? JSON.parse(savedTasks) : []);
@@ -97,6 +106,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             { id: '1', name: 'Daily Missions', type: 'daily', themeColor: 'tech-primary', icon: 'Target' },
             { id: '2', name: 'Assignments', type: 'assignment', themeColor: 'tech-secondary', icon: 'BookOpen' }
         ]);
+        setHabits(savedHabits ? JSON.parse(savedHabits) : []);
+        setHabitLogs(savedHabitLogs ? JSON.parse(savedHabitLogs) : []);
         setUserStats(savedStats ? JSON.parse(savedStats) : JSON.parse(JSON.stringify(INITIAL_STATS)));
     };
 
@@ -119,6 +130,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 Query.equal('userId', userId)
             ]);
             setTrackers(trackersRes.documents.map(doc => ({ ...doc, id: doc.$id } as any)));
+
+            // Load Habits
+            const habitsRes = await databases.listDocuments(DATABASE_ID, COLLECTIONS.HABITS, [
+                Query.equal('userId', userId)
+            ]);
+            setHabits(habitsRes.documents.map(doc => ({ ...doc, id: doc.$id } as any)));
+
+            // Load Habit Logs
+            // Note: In a real app we might only load logs for the current month/view to save bandwidth
+            // For now, loading all (assuming manageable volume) but we can optimize later
+            const logsRes = await databases.listDocuments(DATABASE_ID, COLLECTIONS.HABIT_LOGS, [
+                Query.equal('userId', userId), // Assuming logs have userId, or we filter by habit IDs? Better schema is to have userId on logs too for security rules.
+                // If logs don't have userId directly but rely on habitId, logic is complex. Let's assume schema has userId.
+            ]);
+            setHabitLogs(logsRes.documents.map(doc => ({ ...doc, id: doc.$id } as any)));
 
             // Load Stats
             try {
@@ -149,9 +175,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!loading) {
             localStorage.setItem('gtt_tasks', JSON.stringify(tasks));
             localStorage.setItem('gtt_trackers', JSON.stringify(trackers));
+            localStorage.setItem('gtt_habits', JSON.stringify(habits));
+            localStorage.setItem('gtt_habit_logs', JSON.stringify(habitLogs));
             localStorage.setItem('gtt_stats', JSON.stringify(userStats));
         }
-    }, [tasks, trackers, userStats, loading]);
+    }, [tasks, trackers, habits, habitLogs, userStats, loading]);
 
     const logout = async () => {
         await account.deleteSession('current');
@@ -458,6 +486,95 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const addHabit = async (habitData: Omit<Habit, 'id'>) => {
+        const newHabit: Habit = {
+            ...habitData,
+            id: user ? ID.unique() : crypto.randomUUID(),
+        };
+
+        setHabits(prev => [...prev, newHabit]);
+        showToast('New habit created!', { type: 'success' });
+
+        if (user) {
+            try {
+                const { id, ...payload } = newHabit;
+                await databases.createDocument(DATABASE_ID, COLLECTIONS.HABITS, newHabit.id, {
+                    ...payload,
+                    userId: user.$id
+                });
+            } catch (e: any) {
+                console.error('Failed to create habit in cloud', e);
+                showToast(`Sync Failed: ${e.message}`, { type: 'error' });
+            }
+        }
+    };
+
+    const deleteHabit = async (habitId: string) => {
+        setHabits(prev => prev.filter(h => h.id !== habitId));
+        // Also remove logs for this habit locally
+        setHabitLogs(prev => prev.filter(l => l.habitId !== habitId));
+        showToast('Habit deleted.', { type: 'info' });
+
+        if (user) {
+            try {
+                await databases.deleteDocument(DATABASE_ID, COLLECTIONS.HABITS, habitId);
+                // Note: Cascading delete of logs usually handled by backend or manual cleanup. 
+                // For now, we leave orphan logs or cleanup later.
+            } catch (e: any) {
+                console.error('Failed to delete habit in cloud', e);
+                showToast(`Sync Failed: ${e.message}`, { type: 'error' });
+            }
+        }
+    };
+
+    const logHabit = async (habitId: string, date: string, value: number) => {
+        const existingLogIndex = habitLogs.findIndex(l => l.habitId === habitId && l.date === date);
+        const existingLog = existingLogIndex >= 0 ? habitLogs[existingLogIndex] : null;
+
+        if (existingLog) {
+            // Update existing log
+            const updatedLog = { ...existingLog, value };
+            setHabitLogs(prev => {
+                const newLogs = [...prev];
+                newLogs[existingLogIndex] = updatedLog;
+                return newLogs;
+            });
+
+            if (user) {
+                try {
+                    await databases.updateDocument(DATABASE_ID, COLLECTIONS.HABIT_LOGS, existingLog.id, { value });
+                } catch (e: any) {
+                    console.error('Failed to update habit log', e);
+                    // Revert? For now, just toast error
+                    showToast('Sync Failed', { type: 'error' });
+                }
+            }
+        } else {
+            // Create new log
+            const newLog: HabitLog = {
+                id: user ? ID.unique() : crypto.randomUUID(),
+                habitId,
+                date,
+                value
+            };
+            setHabitLogs(prev => [...prev, newLog]);
+
+            if (user) {
+                try {
+                    const { id, ...payload } = newLog;
+                    // Ensure userId is attached for permissions, assuming Schema supports it
+                    await databases.createDocument(DATABASE_ID, COLLECTIONS.HABIT_LOGS, newLog.id, {
+                        ...payload,
+                        userId: user.$id
+                    });
+                } catch (e: any) {
+                    console.error('Failed to create habit log', e);
+                    showToast('Sync Failed', { type: 'error' });
+                }
+            }
+        }
+    };
+
     const resetStats = async () => {
         // Create fresh stats but PRESERVE existing skill definitions (keys)
         const freshStats = JSON.parse(JSON.stringify(INITIAL_STATS));
@@ -653,6 +770,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         <GameContext.Provider value={{
             user,
             tasks,
+            habits,
+            habitLogs,
             trackers,
             userStats,
             addTask,
@@ -661,6 +780,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             deleteTask,
             addTracker,
             deleteTracker,
+            addHabit,
+            deleteHabit,
+            logHabit,
             resetStats,
             setStats,
             updateSkills,
