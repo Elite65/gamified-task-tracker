@@ -52,52 +52,76 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!title.trim()) return;
+        try {
+            e.preventDefault();
+            console.log('Submit Triggered');
 
-        // Parse Start Date
-        let startTimestamp = Date.now();
-
-        // Try to parse input first
-        let parsedDate = false;
-        if (startDateRaw.length >= 8) {
-            const parts = startDateRaw.split('/');
-            if (parts.length === 3) {
-                const [day, month, year] = parts.map(Number);
-                if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                    const d = new Date(year, month - 1, day);
-                    startTimestamp = d.getTime();
-                    parsedDate = true;
-                }
+            if (!title.trim()) {
+                alert('Title is required');
+                return;
             }
+
+            // Parse Start Date
+            let startTimestamp = Date.now();
+
+            // Try to parse input first
+            let parsedDate = false;
+            try {
+                if (startDateRaw && startDateRaw.length >= 8) {
+                    const parts = startDateRaw.split('/');
+                    if (parts.length === 3) {
+                        const [day, month, year] = parts.map(Number);
+                        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                            const d = new Date(year, month - 1, day);
+                            startTimestamp = d.getTime();
+                            parsedDate = true;
+                        }
+                    }
+                }
+            } catch (dateError) {
+                console.error('Date parsing error', dateError);
+            }
+
+            // Fallback to original date if editing and parsing failed/empty
+            if (!parsedDate && isEditing && initialData) {
+                startTimestamp = initialData.startDate;
+            }
+
+            const habitData = {
+                title,
+                type,
+                goalAmount: Number(goalAmount),
+                unit: unit || (type === 'TIME' ? 'mins' : 'units'),
+                startDate: startTimestamp,
+                durationDays: Number(durationDays),
+                carryOver,
+                themeColor,
+            };
+
+            console.log('Sending Update/Create', habitData);
+
+            if (isEditing && initialData) {
+                // Call update - catch potential sync errors from Context
+                try {
+                    updateHabit(initialData.id, habitData);
+                } catch (ctxError: any) {
+                    console.error('Context Update Error', ctxError);
+                    alert(`Update Error: ${ctxError.message}`);
+                }
+            } else {
+                addHabit({
+                    ...habitData,
+                    userId: '' // Context adds this
+                });
+            }
+
+            console.log('Closing Modal');
+            onClose();
+
+        } catch (error: any) {
+            console.error('HandleSubmit Crash', error);
+            alert(`Submit Crash: ${error.message}`);
         }
-
-        // Fallback to original date if editing and parsing failed/empty
-        if (!parsedDate && isEditing && initialData) {
-            startTimestamp = initialData.startDate;
-        }
-
-        const habitData = {
-            title,
-            type,
-            goalAmount: Number(goalAmount),
-            unit: unit || (type === 'TIME' ? 'mins' : 'units'),
-            startDate: startTimestamp,
-            durationDays: Number(durationDays),
-            carryOver,
-            themeColor,
-        };
-
-        if (isEditing && initialData) {
-            updateHabit(initialData.id, habitData);
-        } else {
-            addHabit({
-                ...habitData,
-                userId: '' // Context adds this
-            });
-        }
-
-        onClose();
     };
 
     const resetForm = () => {
