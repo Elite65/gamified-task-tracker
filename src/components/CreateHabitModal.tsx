@@ -50,23 +50,30 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
         return 'pages, reps, liters...';
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim()) return;
 
         // Parse Start Date
         let startTimestamp = Date.now();
-        if (startDateRaw.length >= 8) { // Simple check for date string length
+
+        // Try to parse input first
+        let parsedDate = false;
+        if (startDateRaw.length >= 8) {
             const parts = startDateRaw.split('/');
             if (parts.length === 3) {
                 const [day, month, year] = parts.map(Number);
-                const d = new Date(year, month - 1, day);
-                startTimestamp = d.getTime();
+                if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                    const d = new Date(year, month - 1, day);
+                    startTimestamp = d.getTime();
+                    parsedDate = true;
+                }
             }
-        } else if (isEditing && initialData) {
-            // Keep original start date if not changed (though form forces string)
-            // If string is invalid/empty on edit, fallback to original?
-            // But we set raw string from original.
+        }
+
+        // Fallback to original date if editing and parsing failed/empty
+        if (!parsedDate && isEditing && initialData) {
+            startTimestamp = initialData.startDate;
         }
 
         const habitData = {
@@ -81,7 +88,7 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
         };
 
         if (isEditing && initialData) {
-            updateHabit(initialData.id, habitData);
+            await updateHabit(initialData.id, habitData);
         } else {
             addHabit({
                 ...habitData,

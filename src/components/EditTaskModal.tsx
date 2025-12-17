@@ -45,24 +45,32 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
     const [dateInput, setDateInput] = useState(formatDate(task.dueDate));
     const [timeInput, setTimeInput] = useState(formatTime(task.dueDate));
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         // Parse Date
         let newDueDate: number | undefined = undefined;
-        if (dateInput.length === 10) {
+        if (dateInput.length >= 8) { // basic length check
             const [day, month, year] = dateInput.split('/').map(Number);
-            const dateObj = new Date(year, month - 1, day);
+            // Verify numbers
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                const dateObj = new Date(year, month - 1, day);
 
-            if (timeInput.length === 5) {
-                const [hours, minutes] = timeInput.split(':').map(Number);
-                dateObj.setHours(hours, minutes);
+                if (timeInput.length === 5) {
+                    const [hours, minutes] = timeInput.split(':').map(Number);
+                    if (!isNaN(hours) && !isNaN(minutes)) {
+                        dateObj.setHours(hours, minutes);
+                    }
+                }
+                newDueDate = dateObj.getTime();
             }
-
-            newDueDate = dateObj.getTime();
         }
 
-        updateTask(task.id, {
+        // If date input was cleared/empty, newDueDate remains undefined (which might clear it or keep it depending on API)
+        // logic: if user cleared input, they probably want to remove date? 
+        // Current implementation passes undefined.
+
+        await updateTask(task.id, {
             title,
             difficulty,
             status,
