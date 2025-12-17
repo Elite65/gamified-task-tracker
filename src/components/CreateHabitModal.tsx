@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
-import { X, Plus, Calendar, Clock, BarChart2, Repeat, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Plus, Calendar, Clock, BarChart2, Repeat, CheckCircle2, Save } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { DateInput } from './DateInput';
-import { HabitType } from '../types';
+import { Habit, HabitType } from '../types';
 
-interface CreateHabitModalProps {
+interface HabitModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialData?: Habit;
 }
 
-export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({ isOpen, onClose }) => {
-    const { addHabit } = useGame();
+export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initialData }) => {
+    const { addHabit, updateHabit } = useGame();
+    const isEditing = !!initialData;
 
     // Form State
     const [title, setTitle] = useState('');
@@ -24,6 +26,25 @@ export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({ isOpen, onCl
 
     const availableColors = ['tech-primary', 'tech-secondary', 'tech-accent', 'blue-400', 'green-400', 'purple-400', 'amber-400', 'red-400', 'pink-400'];
 
+    // Load initial data for editing
+    useEffect(() => {
+        if (isOpen) {
+            if (initialData) {
+                setTitle(initialData.title);
+                setType(initialData.type);
+                setGoalAmount(initialData.goalAmount);
+                setUnit(initialData.unit);
+                const d = new Date(initialData.startDate);
+                setStartDateRaw(`${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`);
+                setDurationDays(initialData.durationDays);
+                setCarryOver(initialData.carryOver);
+                setThemeColor(initialData.themeColor);
+            } else {
+                resetForm();
+            }
+        }
+    }, [isOpen, initialData]);
+
     const getUnitPlaceholder = () => {
         if (type === 'TIME') return 'mins, hours...';
         return 'pages, reps, liters...';
@@ -35,14 +56,20 @@ export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({ isOpen, onCl
 
         // Parse Start Date
         let startTimestamp = Date.now();
-        if (startDateRaw.length === 10) {
-            const [day, month, year] = startDateRaw.split('/').map(Number);
-            // Create date at midnight
-            const d = new Date(year, month - 1, day);
-            startTimestamp = d.getTime();
+        if (startDateRaw.length >= 8) { // Simple check for date string length
+            const parts = startDateRaw.split('/');
+            if (parts.length === 3) {
+                const [day, month, year] = parts.map(Number);
+                const d = new Date(year, month - 1, day);
+                startTimestamp = d.getTime();
+            }
+        } else if (isEditing && initialData) {
+            // Keep original start date if not changed (though form forces string)
+            // If string is invalid/empty on edit, fallback to original?
+            // But we set raw string from original.
         }
 
-        addHabit({
+        const habitData = {
             title,
             type,
             goalAmount: Number(goalAmount),
@@ -51,10 +78,17 @@ export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({ isOpen, onCl
             durationDays: Number(durationDays),
             carryOver,
             themeColor,
-            userId: '' // Context adds this
-        });
+        };
 
-        resetForm();
+        if (isEditing && initialData) {
+            updateHabit(initialData.id, habitData);
+        } else {
+            addHabit({
+                ...habitData,
+                userId: '' // Context adds this
+            });
+        }
+
         onClose();
     };
 
@@ -78,7 +112,7 @@ export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({ isOpen, onCl
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-bold flex items-center gap-2">
                         <Repeat className="w-5 h-5 text-tech-primary" />
-                        New Habit Protocol
+                        {isEditing ? 'Edit Habit Protocol' : 'New Habit Protocol'}
                     </h3>
                     <button onClick={onClose} className="p-2 hover:bg-tech-surface-hover rounded-full transition-colors">
                         <X className="w-5 h-5" />
@@ -107,8 +141,8 @@ export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({ isOpen, onCl
                                 type="button"
                                 onClick={() => { setType('QUANTITY'); setUnit(''); }}
                                 className={`p-3 rounded-xl border flex items-center justify-center gap-2 transition-all ${type === 'QUANTITY'
-                                        ? 'bg-tech-primary/20 border-tech-primary text-tech-primary'
-                                        : 'bg-tech-bg border-tech-border hover:border-tech-primary/50 text-gray-400'
+                                    ? 'bg-tech-primary/20 border-tech-primary text-tech-primary'
+                                    : 'bg-tech-bg border-tech-border hover:border-tech-primary/50 text-gray-400'
                                     }`}
                             >
                                 <BarChart2 className="w-4 h-4" />
@@ -118,8 +152,8 @@ export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({ isOpen, onCl
                                 type="button"
                                 onClick={() => { setType('TIME'); setUnit('mins'); }}
                                 className={`p-3 rounded-xl border flex items-center justify-center gap-2 transition-all ${type === 'TIME'
-                                        ? 'bg-tech-primary/20 border-tech-primary text-tech-primary'
-                                        : 'bg-tech-bg border-tech-border hover:border-tech-primary/50 text-gray-400'
+                                    ? 'bg-tech-primary/20 border-tech-primary text-tech-primary'
+                                    : 'bg-tech-bg border-tech-border hover:border-tech-primary/50 text-gray-400'
                                     }`}
                             >
                                 <Clock className="w-4 h-4" />
@@ -205,11 +239,6 @@ export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({ isOpen, onCl
                                         backgroundColor: color.startsWith('tech-') ? `var(--color-${color.replace('tech-', '')})` : undefined
                                     }}
                                 >
-                                    {/* For tailwind colors, we might need a mapping or inline style helper. 
-                                        Since we use 'blue-400' etc, we need strict mapping or style.
-                                        However, the app uses 'bg-blue-400'. 
-                                        Let's assume the button can just use the class directly.
-                                     */}
                                     <div className={`w-full h-full rounded-full ${color.startsWith('tech-') ? '' : 'bg-' + color}`} />
                                 </button>
                             ))}
@@ -222,8 +251,8 @@ export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({ isOpen, onCl
                         disabled={!title}
                         className="w-full py-4 bg-tech-primary text-black font-bold rounded-xl hover:bg-tech-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 mt-8"
                     >
-                        <Plus className="w-5 h-5" />
-                        Initialize Habit
+                        {isEditing ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                        {isEditing ? 'Update Protocol' : 'Initialize Habit'}
                     </button>
 
                 </form>

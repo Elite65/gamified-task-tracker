@@ -12,6 +12,8 @@ export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats }) => {
     const { currentTheme } = useGame();
     const theme = themes.find(t => t.id === currentTheme) || themes[0];
 
+    if (!stats || !stats.skills) return null;
+
     const data = Object.values(stats.skills).map(skill => ({
         subject: `${skill.name} (Lvl ${skill.level})`,
         A: skill.value,
@@ -27,9 +29,9 @@ export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats }) => {
     }
 
     return (
-        <div className="w-full h-full relative">
+        <div className="w-full h-full relative outline-none focus:outline-none ring-0">
             <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="55%" data={data}>
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
                     <PolarGrid stroke={theme.colors.border} />
                     <PolarAngleAxis
                         dataKey="subject"
@@ -44,6 +46,7 @@ export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats }) => {
                         fill={theme.colors.primary}
                         fillOpacity={0.2}
                         isAnimationActive={true}
+                        activeDot={false}
                     />
                 </RadarChart>
             </ResponsiveContainer>

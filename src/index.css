@@ -52,3 +52,23 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-tech-border;
 }
+
+/* 
+   FIX: Remove default focus outline from Recharts and SVGs 
+   This addresses the "white border lines" issue on click.
+*/
+.recharts-wrapper,
+.recharts-surface,
+.recharts-layer,
+svg,
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Re-enable focus for actual inputs */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}

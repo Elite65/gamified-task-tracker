@@ -28,6 +28,7 @@ interface GameContextType {
     setTheme: (themeId: string) => void;
     logout: () => void;
     addHabit: (habit: Omit<Habit, 'id'>) => void;
+    updateHabit: (habitId: string, updates: Partial<Omit<Habit, 'id' | 'userId'>>) => void;
     deleteHabit: (habitId: string) => void;
     logHabit: (habitId: string, date: string, value: number) => void;
 }
@@ -42,6 +43,18 @@ export const useGame = () => {
     return context;
 };
 
+// Helper for safe JSON parsing
+const safeParse = (key: string, fallback: any) => {
+    try {
+        const item = localStorage.getItem(key);
+        if (!item || item === 'undefined' || item === 'null') return fallback;
+        return JSON.parse(item);
+    } catch (e) {
+        console.warn(`Failed to parse ${key}, using fallback.`, e);
+        return fallback;
+    }
+};
+
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { showToast } = useToast();
     const [user, setUser] = useState<any>(null);
@@ -52,7 +65,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [trackers, setTrackers] = useState<Tracker[]>([]);
     const [habits, setHabits] = useState<Habit[]>([]);
     const [habitLogs, setHabitLogs] = useState<HabitLog[]>([]);
-    const [userStats, setUserStats] = useState<UserStats>(JSON.parse(JSON.stringify(INITIAL_STATS)));
+    const [userStats, setUserStats] = useState<UserStats>(safeParse('gtt_stats', JSON.parse(JSON.stringify(INITIAL_STATS))));
     const [currentTheme, setCurrentTheme] = useState<string>('default');
 
     // Apply Theme Colors
@@ -95,20 +108,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const loadLocalData = () => {
-        const savedTasks = localStorage.getItem('gtt_tasks');
-        const savedTrackers = localStorage.getItem('gtt_trackers');
-        const savedHabits = localStorage.getItem('gtt_habits');
-        const savedHabitLogs = localStorage.getItem('gtt_habit_logs');
-        const savedStats = localStorage.getItem('gtt_stats');
-
-        setTasks(savedTasks ? JSON.parse(savedTasks) : []);
-        setTrackers(savedTrackers ? JSON.parse(savedTrackers) : [
+        setTasks(safeParse('gtt_tasks', []));
+        setTrackers(safeParse('gtt_trackers', [
             { id: '1', name: 'Daily Missions', type: 'daily', themeColor: 'tech-primary', icon: 'Target' },
             { id: '2', name: 'Assignments', type: 'assignment', themeColor: 'tech-secondary', icon: 'BookOpen' }
-        ]);
-        setHabits(savedHabits ? JSON.parse(savedHabits) : []);
-        setHabitLogs(savedHabitLogs ? JSON.parse(savedHabitLogs) : []);
-        setUserStats(savedStats ? JSON.parse(savedStats) : JSON.parse(JSON.stringify(INITIAL_STATS)));
+        ]));
+        setHabits(safeParse('gtt_habits', []));
+        setHabitLogs(safeParse('gtt_habit_logs', []));
+        setUserStats(safeParse('gtt_stats', JSON.parse(JSON.stringify(INITIAL_STATS))));
     };
 
     const loadCloudData = async (userId: string) => {
@@ -207,16 +214,35 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             Object.entries(newStats.skills).map(([k, v]) => [k, { ...v }])
         );
 
-        newStats.xp = Math.max(0, newStats.xp + xpGain);
+        // --- User Level Logic ---
+        newStats.xp = newStats.xp + xpGain;
 
-        // Level Up Logic (Only if gaining XP)
-        if (xpGain > 0 && newStats.xp >= newStats.nextLevelXp) {
-            newStats.level += 1;
-            newStats.xp = newStats.xp - newStats.nextLevelXp;
-            newStats.nextLevelXp = Math.floor(newStats.nextLevelXp * 1.5);
-            showToast(`Level Up! You are now Level ${newStats.level}`, { type: 'success' });
+        // Level Up Logic
+        if (xpGain > 0) {
+            while (newStats.xp >= newStats.nextLevelXp) {
+                newStats.level += 1;
+                newStats.xp = newStats.xp - newStats.nextLevelXp;
+                newStats.nextLevelXp = Math.floor(newStats.nextLevelXp * 1.5);
+                showToast(`Level Up! You are now Level ${newStats.level}`, { type: 'success' });
+            }
+        }
+        // Level Down Logic
+        else if (xpGain < 0) {
+            while (newStats.xp < 0) {
+                if (newStats.level > 1) {
+                    newStats.level -= 1;
+                    // Reverse the growth formula: prevCap = currentCap / 1.5
+                    newStats.nextLevelXp = Math.ceil(newStats.nextLevelXp / 1.5);
+                    newStats.xp = newStats.nextLevelXp + newStats.xp; // xp is negative, so this subtracts it from the top of previous level
+                    showToast(`Level Down... You are back to Level ${newStats.level}`, { type: 'info' });
+                } else {
+                    newStats.xp = 0; // Cap at 0 for level 1
+                    break;
+                }
+            }
         }
 
+        // --- Skill Level Logic ---
         taskSkills.forEach(skillName => {
             // Case insensitive matching
             const lowerSkillTag = skillName.toLowerCase();
@@ -229,14 +255,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (matchingSkillKey) {
                 const currentSkill = newStats.skills[matchingSkillKey];
-                let newValue = Math.max(0, currentSkill.value + skillGain);
+                let newValue = currentSkill.value + skillGain;
                 let newLevel = currentSkill.level;
 
-                // Leveling Logic: Check if we crossed 100 (Only if gaining)
-                if (skillGain > 0 && newValue >= 100) {
-                    const levelsGained = Math.floor(newValue / 100);
-                    newLevel += levelsGained;
-                    newValue = newValue % 100;
+                // Skill Up Logic
+                if (skillGain > 0) {
+                    while (newValue >= 100) {
+                        newLevel += 1;
+                        newValue -= 100;
+                    }
+                }
+                // Skill Down Logic
+                else if (skillGain < 0) {
+                    while (newValue < 0) {
+                        if (newLevel > 1) {
+                            newLevel -= 1;
+                            newValue += 100;
+                        } else {
+                            newValue = 0; // Cap at 0 for level 1
+                            break;
+                        }
+                    }
                 }
 
                 newStats.skills[matchingSkillKey] = {
@@ -506,6 +545,28 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.error('Failed to create habit in cloud', e);
                 showToast(`Sync Failed: ${e.message}`, { type: 'error' });
             }
+        }
+    };
+
+    const updateHabit = async (habitId: string, updates: Partial<Omit<Habit, 'id' | 'userId'>>) => {
+        // Optimistic update
+        setHabits(prev => prev.map(h => h.id === habitId ? { ...h, ...updates } : h));
+
+        if (!user) return;
+
+        try {
+            await databases.updateDocument(
+                DATABASE_ID,
+                COLLECTIONS.HABITS,
+                habitId,
+                updates
+            );
+            showToast('Habit updated successfully!', { type: 'success' });
+        } catch (error) {
+            console.error('Failed to update habit:', error);
+            showToast('Failed to save habit changes.', { type: 'error' });
+            // Revert on failure (reload from server or simple undo if we tracked it)
+            loadCloudData(user?.$id);
         }
     };
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutGrid, Calendar, Settings, CheckSquare, BookOpen, Clock, LogIn, LogOut, Camera, X } from 'lucide-react';
+import { LayoutGrid, Calendar, Settings, CheckSquare, BookOpen, Clock, LogIn, LogOut, Camera, X, Repeat } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useTime } from '../hooks/useTime';
 import { avatars, storage, BUCKET_ID } from '../lib/appwrite';
@@ -64,6 +64,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         { icon: LayoutGrid, label: 'Dashboard', path: '/' },
         { icon: Calendar, label: 'Calendar', path: '/calendar' },
         { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
+        { icon: Repeat, label: 'Habits', path: '/habits' },
         { icon: BookOpen, label: 'Courses', path: '/courses' },
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
@@ -264,7 +265,18 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     </div>
                 </button>
 
-                {/* 4. Courses */}
+                {/* 4. Habits */}
+                <Link
+                    to="/habits"
+                    className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/habits' ? 'text-tech-primary' : 'text-gray-500'}`}
+                >
+                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/habits' ? 'bg-tech-primary/10' : ''}`}>
+                        <Repeat className="w-6 h-6" strokeWidth={location.pathname === '/habits' ? 2.5 : 2} />
+                    </div>
+                    {location.pathname === '/habits' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
+                </Link>
+
+                {/* 5. Courses */}
                 <Link
                     to="/courses"
                     className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/courses' ? 'text-tech-primary' : 'text-gray-500'}`}

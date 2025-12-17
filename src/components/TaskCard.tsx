@@ -72,7 +72,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onEdit
                             <Edit2 className="w-4 h-4" />
                         </button>
                         <button
-                            onClick={() => onStatusChange(task.id, 'COMPLETED')}
+                            onClick={() => {
+                                // Toggle logic: If completed, reopen (to STARTED). If active, complete.
+                                if (task.status === 'COMPLETED') {
+                                    onStatusChange(task.id, 'STARTED');
+                                } else {
+                                    onStatusChange(task.id, 'COMPLETED');
+                                }
+                            }}
                             className={`p-1 rounded-full transition-colors ${task.status === 'COMPLETED' ? 'text-green-400' : 'text-tech-text-secondary hover:text-green-400'}`}
                         >
                             {task.status === 'COMPLETED' ? (

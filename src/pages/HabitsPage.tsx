@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { HabitCard } from '../components/HabitCard';
-import { CreateHabitModal } from '../components/CreateHabitModal';
+import { HabitModal } from '../components/CreateHabitModal';
 import { Plus, Repeat, CalendarCheck } from 'lucide-react';
 import { useTime } from '../hooks/useTime';
 
@@ -63,12 +63,12 @@ export const HabitsPage: React.FC = () => {
                     {/* Add Button Card (Desktop) */}
                     <button
                         onClick={() => setIsCreateOpen(true)}
-                        className="hidden md:flex flex-col items-center justify-center p-6 border-2 border-dashed border-tech-border rounded-2xl bg-transparent hover:bg-tech-surface/50 transition-all group min-h-[140px]"
+                        className="hidden md:flex flex-col items-center justify-center p-6 border-2 border-dashed border-tech-border rounded-2xl bg-transparent hover:bg-tech-surface/50 transition-all group min-h-[160px] h-full"
                     >
-                        <div className="w-12 h-12 rounded-full bg-tech-surface flex items-center justify-center group-hover:bg-tech-primary group-hover:text-black transition-colors mb-2">
+                        <div className="w-12 h-12 rounded-full bg-tech-surface flex items-center justify-center group-hover:bg-tech-primary group-hover:text-black transition-colors mb-2 shadow-sm">
                             <Plus className="w-6 h-6" />
                         </div>
-                        <span className="font-bold text-tech-text-secondary group-hover:text-tech-text">New Habit</span>
+                        <span className="font-bold text-tech-text-secondary group-hover:text-tech-text">New Habit Protocol</span>
                     </button>
                 </div>
             )}
@@ -81,7 +81,7 @@ export const HabitsPage: React.FC = () => {
                 <Plus className="w-8 h-8" />
             </button>
 
-            <CreateHabitModal
+            <HabitModal
                 isOpen={isCreateOpen}
                 onClose={() => setIsCreateOpen(false)}
             />

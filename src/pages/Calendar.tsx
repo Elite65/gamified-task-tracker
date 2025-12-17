@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const Calendar: React.FC = () => {
-    const { tasks } = useGame();
+    const { tasks, habits, habitLogs } = useGame();
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
@@ -41,15 +41,63 @@ export const Calendar: React.FC = () => {
             const isCurrentMonth = dayNumber > 0 && dayNumber <= daysInMonth;
             const dayTasks = isCurrentMonth ? getTasksForDate(dayNumber) : [];
 
+            // Calculate Habit Status for Day
+            // Calculate Habit Status for Day
+            let habitElements = null;
+            if (isCurrentMonth) {
+                const dateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+                // Get logs for this day
+                const dayLogs = habitLogs.filter((l: any) => l.date === dateKey);
+
+                // Check active habits for this day (inclusive comparison)
+                // Normalize dates: compare habit start vs end of current day
+                const currentDayEnd = new Date(currentDate.getFullYear(), currentDate.getMonth(), dayNumber, 23, 59, 59).getTime();
+
+                const activeHabitsForDay = habits.filter((h: any) => h.startDate <= currentDayEnd);
+
+                if (activeHabitsForDay.length > 0) {
+                    // Render a dot for EACH habit
+                    const habitDots = activeHabitsForDay.map((h: any) => {
+                        const log = dayLogs.find((l: any) => l.habitId === h.id);
+                        const isComplete = log && log.value >= h.goalAmount;
+                        const isPartial = log && log.value > 0;
+
+                        let color = 'bg-tech-surface-hover'; // Default/Pending
+                        if (isComplete) color = 'bg-green-400';
+                        else if (isPartial) color = 'bg-yellow-400';
+
+                        return { id: h.id, color, title: h.title };
+                    });
+
+                    // Helper to render dots
+                    habitElements = (
+                        <div className="flex gap-1 mt-1 flex-wrap justify-end max-w-[50px]">
+                            {habitDots.map((d: any) => (
+                                <div
+                                    key={d.id}
+                                    className={`w-1.5 h-1.5 rounded-full ${d.color} shadow-[0_0_2px_currentColor]`}
+                                    title={d.title}
+                                />
+                            ))}
+                        </div>
+                    );
+                }
+            }
+
             days.push(
                 <div
                     key={i}
-                    className={`min-h-[100px] p-2 ${isCurrentMonth ? 'bg-tech-surface/50' : 'bg-transparent opacity-30'
+                    className={`min-h-[100px] p-2 relative ${isCurrentMonth ? 'bg-tech-surface/50' : 'bg-transparent opacity-30'
                         }`}
                 >
                     {isCurrentMonth && (
                         <>
-                            <div className="text-right text-sm text-tech-text-secondary mb-2">{dayNumber}</div>
+                            <div className="flex justify-between items-start mb-2">
+                                {/* Habit Dots Container */}
+                                {habitElements}
+
+                                <div className="text-sm text-tech-text-secondary ml-auto">{dayNumber}</div>
+                            </div>
                             <div className="space-y-1">
                                 {dayTasks.map(task => (
                                     <motion.div
