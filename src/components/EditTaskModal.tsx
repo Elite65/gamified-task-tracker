@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Task, Difficulty, TaskStatus } from '../types';
 import { useGame } from '../context/GameContext';
 import { X, Save, Calendar, Target, Zap, Activity, FileText, Trash2 } from 'lucide-react';
@@ -70,7 +71,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
         // logic: if user cleared input, they probably want to remove date? 
         // Current implementation passes undefined.
 
-        await updateTask(task.id, {
+        updateTask(task.id, {
             title,
             difficulty,
             status,
@@ -104,8 +105,8 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
         { label: 'COMPLETED', value: 'COMPLETED' },
     ];
 
-    return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center z-[100] p-0 md:p-4">
+    return createPortal(
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center z-[9999] p-0 md:p-4">
             <div className="bg-tech-surface border-t md:border border-tech-border rounded-t-3xl md:rounded-2xl w-full max-w-md flex flex-col h-[85vh] md:h-auto md:max-h-[90vh] animate-in slide-in-from-bottom-10 md:zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex justify-between items-center p-6 border-b border-tech-border/50 flex-shrink-0">
@@ -222,5 +223,5 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
                 </form>
             </div>
         </div>
-    );
+        , document.body);
 };

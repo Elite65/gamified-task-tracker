@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, Calendar, Clock, BarChart2, Repeat, CheckCircle2, Save, Trash2 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { DateInput } from './DateInput';
@@ -112,7 +113,9 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
 
     if (!isOpen) return null;
 
-    return (
+    import { createPortal } from 'react-dom';
+
+    return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm text-tech-text">
             <div className="w-full max-w-md bg-tech-surface border-t md:border border-tech-border rounded-t-3xl md:rounded-3xl p-6 shadow-2xl h-[90vh] md:max-h-[90vh] md:h-auto flex flex-col text-tech-text animate-in slide-in-from-bottom-10 md:zoom-in-95 duration-200">
 
@@ -127,6 +130,7 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
                 </div>
 
                 <form id="habit-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pb-6 px-1">
+                    {/* ... form content ... */}
 
                     {/* Title */}
                     <div>
@@ -284,7 +288,9 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
+};
 };
 
