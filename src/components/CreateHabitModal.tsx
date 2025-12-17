@@ -277,8 +277,8 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
                             </button>
                         )}
                         <button
-                            form="habit-form"
-                            type="submit"
+                            type="button"
+                            onClick={(e) => handleSubmit(e as any)}
                             disabled={!title}
                             className="flex-1 py-4 bg-tech-primary text-black font-bold rounded-xl hover:bg-tech-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                         >
