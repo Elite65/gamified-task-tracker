@@ -54,12 +54,8 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
     const handleSubmit = async (e: React.FormEvent) => {
         try {
             e.preventDefault();
-            console.log('Submit Triggered');
 
-            if (!title.trim()) {
-                alert('Title is required');
-                return;
-            }
+            if (!title.trim()) return;
 
             // Parse Start Date
             let startTimestamp = Date.now();
@@ -98,16 +94,8 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
                 themeColor,
             };
 
-            console.log('Sending Update/Create', habitData);
-
             if (isEditing && initialData) {
-                // Call update - catch potential sync errors from Context
-                try {
-                    updateHabit(initialData.id, habitData);
-                } catch (ctxError: any) {
-                    console.error('Context Update Error', ctxError);
-                    alert(`Update Error: ${ctxError.message}`);
-                }
+                updateHabit(initialData.id, habitData);
             } else {
                 addHabit({
                     ...habitData,
@@ -115,12 +103,10 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
                 });
             }
 
-            console.log('Closing Modal');
             onClose();
 
         } catch (error: any) {
             console.error('HandleSubmit Crash', error);
-            alert(`Submit Crash: ${error.message}`);
         }
     };
 

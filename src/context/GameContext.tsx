@@ -842,6 +842,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             addTracker,
             deleteTracker,
             addHabit,
+            updateHabit,
             deleteHabit,
             logHabit,
             resetStats,
