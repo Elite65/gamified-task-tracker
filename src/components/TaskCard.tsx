@@ -114,6 +114,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onEdit
                         </div>
                     )}
                 </div>
+
+                {/* Description / Notes Display */}
+                {task.description && (
+                    <div className="mt-3 pt-3 border-t border-tech-border/30 text-xs text-tech-text-secondary whitespace-pre-wrap">
+                        {task.description}
+                    </div>
+                )}
             </div>
         </>
     );
