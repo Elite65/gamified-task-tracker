@@ -96,7 +96,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
                             <h3 className="font-bold text-lg">{habit.title}</h3>
                             <button
                                 onClick={() => setIsEditOpen(true)}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded-md text-tech-text-secondary hover:text-white"
+                                className="p-1 hover:bg-white/10 rounded-md text-tech-text-secondary hover:text-white transition-colors"
                                 title="Edit Habit"
                             >
                                 <Edit2 className="w-3 h-3" />

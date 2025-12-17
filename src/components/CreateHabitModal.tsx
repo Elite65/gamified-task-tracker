@@ -88,7 +88,7 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
         };
 
         if (isEditing && initialData) {
-            await updateHabit(initialData.id, habitData);
+            updateHabit(initialData.id, habitData);
         } else {
             addHabit({
                 ...habitData,
@@ -113,7 +113,7 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm text-tech-text">
+        <div className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm text-tech-text">
             <div className="w-full max-w-md bg-tech-surface border-t md:border border-tech-border rounded-t-3xl md:rounded-3xl p-6 shadow-2xl h-[90vh] md:max-h-[90vh] md:h-auto flex flex-col text-tech-text animate-in slide-in-from-bottom-10 md:zoom-in-95 duration-200">
 
                 <div className="flex justify-between items-center mb-6">
@@ -126,7 +126,7 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pb-24 md:pb-0">
+                <form id="habit-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pb-6 px-1">
 
                     {/* Title */}
                     <div>
@@ -252,8 +252,10 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
                         </div>
                     </div>
 
-                    {/* Submit Button */}
-                    <div className="flex gap-3 mt-8">
+                </form>
+
+                <div className="p-4 border-t border-tech-border mt-auto bg-tech-surface/95 backdrop-blur rounded-b-3xl md:rounded-b-3xl">
+                    <div className="flex gap-3">
                         {isEditing && (
                             <button
                                 type="button"
@@ -271,6 +273,7 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
                             </button>
                         )}
                         <button
+                            form="habit-form"
                             type="submit"
                             disabled={!title}
                             className="flex-1 py-4 bg-tech-primary text-black font-bold rounded-xl hover:bg-tech-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
@@ -279,9 +282,9 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, initial
                             {isEditing ? 'Update Protocol' : 'Initialize Habit'}
                         </button>
                     </div>
-
-                </form>
+                </div>
             </div>
         </div>
     );
 };
+
