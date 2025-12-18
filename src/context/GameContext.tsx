@@ -262,7 +262,32 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // --- Actions (Modified to support Cloud) ---
 
-    const gainXp = async (difficulty: string, taskSkills: string[] = [], multiplier: number = 1) => {
+    // Internal Helper: Sync stats to cloud
+    const syncStatsToCloud = async (stats: UserStats, currentUser: any) => {
+        if (!currentUser) return;
+        try {
+            await databases.updateDocument(DATABASE_ID, COLLECTIONS.USER_STATS, currentUser.$id, {
+                ...stats,
+                skills: JSON.stringify(stats.skills)
+            });
+        } catch (e: any) {
+            if (e.code === 404) {
+                try {
+                    await databases.createDocument(DATABASE_ID, COLLECTIONS.USER_STATS, currentUser.$id, {
+                        ...stats,
+                        skills: JSON.stringify(stats.skills)
+                    });
+                } catch (createError: any) {
+                    console.error('Failed to create stats', createError);
+                }
+            } else {
+                console.error('Failed to sync stats', e);
+            }
+        }
+    };
+
+    // Internal Helper: Calculate XP Update (Functional, no side effects)
+    const calculateXpUpdate = (currentStats: UserStats, difficulty: string, taskSkills: string[] = [], multiplier: number = 1): { stats: UserStats, gained: boolean } => {
         let xpGain = 10;
         let skillGain = 2;
 
@@ -273,8 +298,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         xpGain *= multiplier;
         skillGain *= multiplier;
 
-        const newStats = { ...userStats };
-        // Deep copy skills to prevent mutation of shared references
+        const newStats = { ...currentStats };
+        // Deep copy skills
         newStats.skills = Object.fromEntries(
             Object.entries(newStats.skills).map(([k, v]) => [k, { ...v }])
         );
@@ -282,7 +307,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // --- User Level Logic ---
         newStats.xp = newStats.xp + xpGain;
 
-        // Level Up Logic
         if (xpGain > 0) {
             while (newStats.xp >= newStats.nextLevelXp) {
                 newStats.level += 1;
@@ -290,18 +314,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 newStats.nextLevelXp = Math.floor(newStats.nextLevelXp * 1.5);
                 showToast(`Level Up! You are now Level ${newStats.level}`, { type: 'success' });
             }
-        }
-        // Level Down Logic
-        else if (xpGain < 0) {
+        } else if (xpGain < 0) {
             while (newStats.xp < 0) {
                 if (newStats.level > 1) {
                     newStats.level -= 1;
-                    // Reverse the growth formula: prevCap = currentCap / 1.5
                     newStats.nextLevelXp = Math.ceil(newStats.nextLevelXp / 1.5);
-                    newStats.xp = newStats.nextLevelXp + newStats.xp; // xp is negative, so this subtracts it from the top of previous level
+                    newStats.xp = newStats.nextLevelXp + newStats.xp;
                     showToast(`Level Down... You are back to Level ${newStats.level}`, { type: 'info' });
                 } else {
-                    newStats.xp = 0; // Cap at 0 for level 1
+                    newStats.xp = 0;
                     break;
                 }
             }
@@ -309,11 +330,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // --- Skill Level Logic ---
         taskSkills.forEach(skillName => {
-            // Case insensitive matching
-            const lowerSkillTag = skillName.toLowerCase();
-
-            // Find matching skill in user stats
-            // Use findBestMatch to get the closest semantic match
             const allSkills = Object.keys(newStats.skills);
             const matchingSkillKey = findBestMatch(skillName, allSkills);
 
@@ -322,21 +338,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 let newValue = currentSkill.value + skillGain;
                 let newLevel = currentSkill.level;
 
-                // Skill Up Logic
                 if (skillGain > 0) {
                     while (newValue >= 100) {
                         newLevel += 1;
                         newValue -= 100;
                     }
-                }
-                // Skill Down Logic
-                else if (skillGain < 0) {
+                } else if (skillGain < 0) {
                     while (newValue < 0) {
                         if (newLevel > 1) {
                             newLevel -= 1;
                             newValue += 100;
                         } else {
-                            newValue = 0; // Cap at 0 for level 1
+                            newValue = 0;
                             break;
                         }
                     }
@@ -350,56 +363,23 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         });
 
-        setUserStats(newStats);
-
-        // Cloud Sync
-        if (user) {
-            try {
-                await databases.updateDocument(DATABASE_ID, COLLECTIONS.USER_STATS, user.$id, {
-                    ...newStats,
-                    skills: JSON.stringify(newStats.skills)
-                });
-            } catch (e: any) {
-                if (e.code === 404) {
-                    try {
-                        await databases.createDocument(DATABASE_ID, COLLECTIONS.USER_STATS, user.$id, {
-                            ...newStats,
-                            skills: JSON.stringify(newStats.skills)
-                        });
-                    } catch (createError: any) {
-                        console.error('Failed to create stats', createError);
-                        showToast(`Creation Failed: ${createError.message}`, { type: 'error' });
-                    }
-                } else {
-                    console.error('Failed to sync stats', e);
-                    showToast(`Sync Failed: ${e.message}`, { type: 'error' });
-                }
-            }
-        }
+        return { stats: newStats, gained: xpGain > 0 };
     };
 
-    const checkAndRegisterSkills = async (skillNames: string[]) => {
-        const newStats = { ...userStats };
-        let hasChanges = false;
-
-        // Deep copy skills
+    // Internal Helper: Register New Skills (Functional)
+    const registerNewSkills = (currentStats: UserStats, skillNames: string[]): { stats: UserStats, hasChanges: boolean } => {
+        const newStats = { ...currentStats };
         newStats.skills = Object.fromEntries(
             Object.entries(newStats.skills).map(([k, v]) => [k, { ...v }])
         );
+        let hasChanges = false;
 
         skillNames.forEach(skillName => {
-            // Ignore special "quadrant" skills
             if (skillName.startsWith('quadrant:')) return;
 
-            const lowerSkillTag = skillName.toLowerCase();
             const matchingKey = findBestMatch(skillName, Object.keys(newStats.skills));
-            const exists = !!matchingKey;
-
-            if (!exists) {
-                // Register new skill
-                // Capitalize first letter for display quality
+            if (!matchingKey) {
                 const displayName = skillName.charAt(0).toUpperCase() + skillName.slice(1);
-
                 newStats.skills[displayName] = {
                     name: displayName,
                     value: 0,
@@ -409,26 +389,33 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         });
 
-        if (hasChanges) {
-            setUserStats(newStats);
-            showToast('New skills registered to profile.', { type: 'success' });
+        return { stats: newStats, hasChanges };
+    };
 
-            if (user) {
-                try {
-                    await databases.updateDocument(DATABASE_ID, COLLECTIONS.USER_STATS, user.$id, {
-                        ...newStats,
-                        skills: JSON.stringify(newStats.skills)
-                    });
-                } catch (e: any) {
-                    console.error('Failed to sync new skills', e);
-                }
-            }
+    const gainXp = async (difficulty: string, taskSkills: string[] = [], multiplier: number = 1) => {
+        const { stats } = calculateXpUpdate(userStats, difficulty, taskSkills, multiplier);
+        setUserStats(stats);
+        if (user) await syncStatsToCloud(stats, user);
+    };
+
+    const checkAndRegisterSkills = async (skillNames: string[]) => {
+        const { stats, hasChanges } = registerNewSkills(userStats, skillNames);
+        if (hasChanges) {
+            setUserStats(stats);
+            showToast('New skills registered.', { type: 'success' });
+            if (user) await syncStatsToCloud(stats, user);
         }
     };
 
     const addTask = async (taskData: Omit<Task, 'id' | 'createdAt'>) => {
-        // 1. Check for new skills and register them
-        checkAndRegisterSkills(taskData.skills);
+        // 1. Process Skills on INITIAL state
+        let currentStats = userStats;
+        const { stats: statsWithSkills, hasChanges } = registerNewSkills(currentStats, taskData.skills);
+
+        if (hasChanges) {
+            currentStats = statsWithSkills;
+            showToast('New skills registered.', { type: 'success' });
+        }
 
         const newTask: Task = {
             ...taskData,
@@ -436,27 +423,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             createdAt: Date.now(),
         };
 
-        // Optimistic Update
         setTasks(prev => [...prev, newTask]);
 
-        // Trigger XP if created as COMPLETED
+        // 2. Process XP on UPDATED state (statsWithSkills)
         if (newTask.status === 'COMPLETED') {
-            gainXp(newTask.difficulty, newTask.skills, 1);
+            const { stats: statsWithXp } = calculateXpUpdate(currentStats, newTask.difficulty, newTask.skills, 1);
+            currentStats = statsWithXp;
         }
 
+        // 3. Final Commit of State
+        setUserStats(currentStats);
         showToast('New mission initialized', { type: 'success' });
 
-        // Cloud Sync
         if (user) {
             try {
-                // Exclude 'id' because it's used as the document ID ($id)
-                const { id, quadrant, ...taskPayload } = newTask;
+                // Sync Stats
+                await syncStatsToCloud(currentStats, user);
 
-                // Pack quadrant into skills
+                // Create Task
+                const { id, quadrant, ...taskPayload } = newTask;
                 const skillsToSave = [...newTask.skills];
-                if (quadrant) {
-                    skillsToSave.push(`quadrant:${quadrant}`);
-                }
+                if (quadrant) skillsToSave.push(`quadrant:${quadrant}`);
 
                 await databases.createDocument(DATABASE_ID, COLLECTIONS.TASKS, newTask.id, {
                     ...taskPayload,
@@ -477,96 +464,102 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!task) return;
         const oldStatus = task.status;
 
-        // Optimistic Update
         setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status } : t));
 
+        // Use functional chaining
+        let currentStats = userStats;
+        let msg = '';
+
         if (status === 'COMPLETED' && oldStatus !== 'COMPLETED') {
-            gainXp(task.difficulty, task.skills, 1);
-            showToast('Mission Complete! XP Gained.', { type: 'success' });
+            const res = calculateXpUpdate(currentStats, task.difficulty, task.skills, 1);
+            currentStats = res.stats;
+            msg = 'Mission Complete! XP Gained.';
         } else if (oldStatus === 'COMPLETED' && status !== 'COMPLETED') {
-            // Reverse XP (Deduct)
-            gainXp(task.difficulty, task.skills, -1);
-            showToast('Mission Reopened. XP Reverted.', { type: 'info' });
+            const res = calculateXpUpdate(currentStats, task.difficulty, task.skills, -1);
+            currentStats = res.stats;
+            msg = 'Mission Reopened. XP Reverted.';
         }
 
-        // Cloud Sync
+        if (msg) {
+            setUserStats(currentStats);
+            showToast(msg, { type: status === 'COMPLETED' ? 'success' : 'info' });
+            if (user) await syncStatsToCloud(currentStats, user);
+        }
+
         if (user) {
             try {
                 await databases.updateDocument(DATABASE_ID, COLLECTIONS.TASKS, taskId, { status });
             } catch (e: any) {
                 console.error('Failed to update task in cloud', e);
-                showToast(`Sync Failed: ${e.message}`, { type: 'error' });
             }
         }
     };
 
     const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => {
+        let currentStats = userStats;
+
+        // 1. Register Skills
         if (updates.skills) {
-            checkAndRegisterSkills(updates.skills);
+            const { stats, hasChanges } = registerNewSkills(currentStats, updates.skills);
+            if (hasChanges) {
+                currentStats = stats;
+            }
         }
 
         const currentTask = tasks.find(t => t.id === taskId);
         if (currentTask) {
-            // Handle Status Change via Edit
+            const effectiveSkills = updates.skills || currentTask.skills;
+            // 2. Adjust XP if status changing
             if (updates.status && updates.status !== currentTask.status) {
                 if (updates.status === 'COMPLETED') {
-                    // Use new skills if provided, else old skills
-                    gainXp(currentTask.difficulty, updates.skills || currentTask.skills, 1);
+                    const res = calculateXpUpdate(currentStats, currentTask.difficulty, effectiveSkills, 1);
+                    currentStats = res.stats;
                 } else if (currentTask.status === 'COMPLETED') {
-                    gainXp(currentTask.difficulty, currentTask.skills, -1);
+                    const res = calculateXpUpdate(currentStats, currentTask.difficulty, currentTask.skills, -1);
+                    currentStats = res.stats;
                 }
             }
         }
 
-        // Optimistic Update
+        setUserStats(currentStats);
+        if (user) await syncStatsToCloud(currentStats, user);
+
         setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
         showToast('Mission parameters updated.', { type: 'success' });
 
-        // Cloud Sync
         if (user) {
             try {
-                // Prepare payload: convert dates to strings if present
                 const payload: any = { ...updates };
                 if (updates.dueDate !== undefined) payload.dueDate = updates.dueDate ? String(updates.dueDate) : null;
                 if (updates.endTime !== undefined) payload.endTime = updates.endTime ? String(updates.endTime) : null;
 
-                // Handle Quadrant/Skills packing
                 if (updates.quadrant !== undefined || updates.skills !== undefined) {
-                    const currentTask = tasks.find(t => t.id === taskId);
-                    const skillsToUse = updates.skills || (currentTask ? currentTask.skills : []);
-                    const quadrantToUse = updates.quadrant !== undefined ? updates.quadrant : (currentTask ? currentTask.quadrant : undefined);
-
-                    const skillsToSave = [...skillsToUse];
-                    if (quadrantToUse) {
-                        skillsToSave.push(`quadrant:${quadrantToUse}`);
-                    }
-
+                    const t = tasks.find(t => t.id === taskId);
+                    const s = updates.skills || (t ? t.skills : []);
+                    const q = updates.quadrant !== undefined ? updates.quadrant : (t ? t.quadrant : undefined);
+                    const skillsToSave = [...s];
+                    if (q) skillsToSave.push(`quadrant:${q}`);
                     payload.skills = skillsToSave;
-                    delete payload.quadrant; // Ensure we don't send this as a separate field
+                    delete payload.quadrant;
                 }
 
                 await databases.updateDocument(DATABASE_ID, COLLECTIONS.TASKS, taskId, payload);
             } catch (e: any) {
                 console.error('Failed to update task in cloud', e);
-                showToast(`Sync Failed: ${e.message}`, { type: 'error' });
             }
         }
     };
 
     const deleteTask = async (taskId: string) => {
-        // Optimistic Update
         setTasks(prev => prev.filter(t => t.id !== taskId));
         showToast('Mission deleted.', { type: 'info' });
 
-        // Cloud Sync
         if (user) {
             try {
                 await databases.deleteDocument(DATABASE_ID, COLLECTIONS.TASKS, taskId);
             } catch (e: any) {
-                // If document not found (404), it's already deleted or never existed in cloud.
                 if (e.code !== 404) {
                     console.error('Failed to delete task in cloud', e);
-                    showToast(`Sync Failed: ${e.message}`, { type: 'error' });
                 }
             }
         }
