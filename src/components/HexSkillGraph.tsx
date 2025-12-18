@@ -14,17 +14,30 @@ export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats }) => {
 
     if (!stats || !stats.skills) return null;
 
-    const data = Object.values(stats.skills).map(skill => ({
-        subject: `${skill.name} (Lvl ${skill.level})`,
-        A: skill.value,
-        fullMark: 100,
-    }));
+    const data = Object.values(stats.skills).map(skill => {
+        // Calculate total score: (Level - 1) * 100 + current progress
+        // This ensures the graph grows outwards as you level up, instead of collapsing on reset.
+        const totalScore = ((skill.level - 1) * 100) + skill.value;
+        return {
+            subject: `${skill.name}`,
+            levelLabel: `Lvl ${skill.level}`,
+            A: totalScore,
+            fullMark: 100,
+        };
+    });
+
+    // Calculate dynamic domain max
+    // Find the highest score among all skills to scale the graph appropriately
+    const maxScore = Math.max(...data.map(d => d.A));
+    // Round up to nearest 100 to represent the next "Level Cap" boundary
+    // Ensure minimum is 100 (Level 1 cap)
+    const domainMax = Math.max(100, Math.ceil(maxScore / 100) * 100);
 
     // Ensure we have at least 3 points for a polygon
     if (data.length < 3) {
         // Pad with placeholders if less than 3 skills to maintain shape
         while (data.length < 3) {
-            data.push({ subject: '', A: 0, fullMark: 100 });
+            data.push({ subject: '', levelLabel: '', A: 0, fullMark: 100 });
         }
     }
 
@@ -35,9 +48,30 @@ export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats }) => {
                     <PolarGrid stroke={theme.colors.border} />
                     <PolarAngleAxis
                         dataKey="subject"
-                        tick={{ fill: theme.colors.textSecondary, fontSize: 9, fontFamily: 'Inter' }}
+                        tick={({ payload, x, y, textAnchor, stroke, radius }) => {
+                            const dataPoint = data.find(d => d.subject === payload.value);
+                            return (
+                                <g className="recharts-layer recharts-polar-angle-axis-tick">
+                                    <text
+                                        x={x}
+                                        y={y}
+                                        dy={0}
+                                        textAnchor={textAnchor}
+                                        fill={theme.colors.textSecondary}
+                                        fontSize={10}
+                                        fontFamily="Inter"
+                                        fontWeight="bold"
+                                    >
+                                        {payload.value}
+                                        <tspan x={x} dy={12} fontSize={9} fill={theme.colors.primary} textAnchor={textAnchor}>
+                                            {dataPoint?.levelLabel}
+                                        </tspan>
+                                    </text>
+                                </g>
+                            );
+                        }}
                     />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                    <PolarRadiusAxis angle={30} domain={[0, domainMax]} tick={false} axisLine={false} />
                     <Radar
                         name="Skills"
                         dataKey="A"
