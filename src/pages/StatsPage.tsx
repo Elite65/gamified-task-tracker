@@ -654,6 +654,27 @@ export const StatsPage: React.FC = () => {
                     </div>
                 </div>
 
+                {/* --- DEBUG DATA SECTION --- */}
+                <details className="lg:col-span-12 rounded-3xl border border-red-500/30 bg-red-500/5 p-4 open:bg-black/95">
+                    <summary className="cursor-pointer text-xs font-mono text-red-500 uppercase tracking-widest font-bold select-none">
+                        [DEV] Raw Skill Data Inspector
+                    </summary>
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {userStats.skills && Object.values(userStats.skills).map((skill: any) => (
+                            <div key={skill.name} className="p-3 bg-black/50 border border-white/10 rounded-lg">
+                                <div className="text-tech-primary font-bold text-sm mb-1">{skill.name}</div>
+                                <div className="grid grid-cols-2 gap-2 text-xs font-mono text-gray-400">
+                                    <div>LVL: <span className="text-white">{skill.level}</span></div>
+                                    <div>VAL: <span className="text-white">{skill.value.toFixed(0)}/100</span></div>
+                                </div>
+                                <div className="mt-2 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div className="h-full bg-tech-primary" style={{ width: `${skill.value}%` }}></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </details>
+
             </div>
         </div>
     );
