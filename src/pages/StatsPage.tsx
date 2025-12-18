@@ -49,7 +49,7 @@ export const StatsPage: React.FC = () => {
             case 'forest-flow': // Fix invisible dark green (Use Neon Green)
                 return { graphPrimary: p, graphSecondary: '#22C55E' };
             case 'cold-nights': // Fix invisible dark blue (Use Cyan)
-                return { graphPrimary: '#22D3EE', graphSecondary: '#818CF8' }; // Cyan & Indigo
+                return { graphPrimary: '#FFFFFF', graphSecondary: '#818CF8' }; // White & Indigo
             case 'eclipse-skies': // Fix invisible dark purple (Use Bright Lavender)
                 return { graphPrimary: '#D8B4FE', graphSecondary: '#E879F9' }; // Lavender & Magenta
             case 'soft-autumn': // Fix Tan on Tan (Use Dark Brown)
