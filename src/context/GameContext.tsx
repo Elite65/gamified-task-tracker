@@ -288,12 +288,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Internal Helper: Calculate XP Update (Functional, no side effects)
     const calculateXpUpdate = (currentStats: UserStats, difficulty: string, taskSkills: string[] = [], multiplier: number = 1): { stats: UserStats, gained: boolean } => {
-        let xpGain = 10;
-        let skillGain = 2;
+        let xpGain = 15; // Buffed Base XP
+        let skillGain = 5; // Buffed Base Skill (was 2) - 5% per easy task is visible
 
-        if (difficulty === 'MEDIUM') { xpGain = 25; skillGain = 5; }
-        if (difficulty === 'HARD') { xpGain = 50; skillGain = 10; }
-        if (difficulty === 'EPIC') { xpGain = 100; skillGain = 20; }
+        if (difficulty === 'MEDIUM') { xpGain = 40; skillGain = 15; } // Was 5
+        if (difficulty === 'HARD') { xpGain = 80; skillGain = 30; } // Was 10
+        if (difficulty === 'EPIC') { xpGain = 200; skillGain = 60; } // Was 20! Big jump.
 
         xpGain *= multiplier;
         skillGain *= multiplier;
