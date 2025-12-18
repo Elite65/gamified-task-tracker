@@ -8,6 +8,7 @@ import { DateInput } from './DateInput';
 import { TimeInput } from './TimeInput';
 import { EisenhowerSelector } from './EisenhowerSelector';
 import { EisenhowerQuadrant } from '../types';
+import { SkillSelector } from './SkillSelector';
 
 interface EditTaskModalProps {
     task: Task;
@@ -22,7 +23,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
     const [difficulty, setDifficulty] = useState<Difficulty>(task.difficulty);
     const [status, setStatus] = useState<TaskStatus>(task.status);
     const [quadrant, setQuadrant] = useState<EisenhowerQuadrant | undefined>(task.quadrant);
-    const [skillsInput, setSkillsInput] = useState(task.skills.join(', '));
+    const [selectedSkills, setSelectedSkills] = useState<string[]>(task.skills);
     const [description, setDescription] = useState(task.description || '');
 
     // ... Date Management ...
@@ -76,7 +77,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
             difficulty,
             status,
             quadrant,
-            skills: skillsInput.split(',').map(s => s.trim()).filter(Boolean),
+            skills: selectedSkills,
             description,
             dueDate: newDueDate
         });
@@ -170,15 +171,10 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
                     />
 
                     {/* Skills */}
-                    <div>
-                        <label className="block text-xs font-mono text-gray-400 mb-1 uppercase">Skills (Comma Separated)</label>
-                        <input
-                            value={skillsInput}
-                            onChange={e => setSkillsInput(e.target.value)}
-                            className="w-full bg-black/30 border border-tech-border rounded-lg p-4 md:p-3 text-base md:text-sm focus:border-tech-primary outline-none text-white"
-                            placeholder="Focus, Coding, Design..."
-                        />
-                    </div>
+                    <SkillSelector
+                        selectedSkills={selectedSkills}
+                        onChange={setSelectedSkills}
+                    />
 
                     {/* Notes */}
                     <div>

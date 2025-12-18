@@ -8,20 +8,22 @@ import { DateInput } from './DateInput';
 import { TimeInput } from './TimeInput';
 import { EisenhowerSelector } from './EisenhowerSelector';
 import { EisenhowerQuadrant } from '../types';
+import { SkillSelector } from './SkillSelector';
 
 interface CreateTaskModalProps {
     onClose: () => void;
 }
 
 export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
-    const { addTask } = useGame();
+    const { addTask, trackers } = useGame();
 
     const [title, setTitle] = useState('');
+    const [trackerId, setTrackerId] = useState(trackers.length > 0 ? trackers[0].id : '');
     const [difficulty, setDifficulty] = useState<Difficulty>('EASY');
     // Default status for new task is YET_TO_START
     const [status, setStatus] = useState<TaskStatus>('YET_TO_START');
     const [quadrant, setQuadrant] = useState<EisenhowerQuadrant | undefined>(undefined);
-    const [skillsInput, setSkillsInput] = useState('');
+    const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
     const [description, setDescription] = useState('');
 
     // Default Date: Today
@@ -57,8 +59,9 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => 
             title,
             difficulty,
             status,
+            trackerId,
             quadrant,
-            skills: skillsInput.split(',').map(s => s.trim()).filter(Boolean),
+            skills: selectedSkills,
             description,
             dueDate: processedDueDate
         });
@@ -108,6 +111,14 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => 
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
+                        {/* Tracker Selection */}
+                        <Dropdown
+                            label="Module / Tracker"
+                            value={trackerId}
+                            options={trackers.map(t => ({ label: t.name, value: t.id }))}
+                            onChange={setTrackerId}
+                        />
+
                         {/* Difficulty */}
                         <Dropdown
                             label="Difficulty"
@@ -146,15 +157,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => 
                     />
 
                     {/* Skills */}
-                    <div>
-                        <label className="block text-xs font-mono text-gray-400 mb-1 uppercase">Skills (Comma Separated)</label>
-                        <input
-                            value={skillsInput}
-                            onChange={e => setSkillsInput(e.target.value)}
-                            className="w-full bg-black/30 border border-tech-border rounded-lg p-4 md:p-3 text-base md:text-sm focus:border-tech-primary outline-none text-white"
-                            placeholder="Focus, Coding, Design..."
-                        />
-                    </div>
+                    <SkillSelector
+                        selectedSkills={selectedSkills}
+                        onChange={setSelectedSkills}
+                    />
 
                     {/* Notes */}
                     <div>
@@ -188,7 +194,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => 
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
         , document.body);
 };
