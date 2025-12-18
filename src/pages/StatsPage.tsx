@@ -38,6 +38,9 @@ export const StatsPage: React.FC = () => {
     const activeTheme = themes.find(t => t.id === currentTheme) || themes[0];
     const { primary, secondary, text, textSecondary, surface, border, background } = activeTheme.colors;
 
+    // Helper to determine if theme is "light" (for visibility adjustments)
+    const isLightTheme = ['soft-autumn', 'spring-shower', 'frigid-winter'].includes(currentTheme);
+
     // --- Graph Visibility Overrides (Strictly for Charts, leaving UI themes untouched) ---
     const { graphPrimary, graphSecondary, graphStrokeWidth, graphFillOpacity } = useMemo(() => {
         const p = activeTheme.colors.primary;
@@ -61,8 +64,6 @@ export const StatsPage: React.FC = () => {
         }
     }, [currentTheme, activeTheme, isLightTheme]);
 
-    // Helper to determine if theme is "light" (for visibility adjustments)
-    const isLightTheme = ['soft-autumn', 'spring-shower', 'frigid-winter'].includes(currentTheme);
     const chartOpacity = isLightTheme ? 0.5 : 0.2; // More transparent to prevent occlusion
     const strokeWidth = isLightTheme ? 3 : 2;
 
