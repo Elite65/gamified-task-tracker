@@ -7,9 +7,11 @@ import { UserStats } from '../types';
 interface HexSkillGraphProps {
     stats: UserStats;
     color?: string;
+    strokeWidth?: number;
+    fillOpacity?: number;
 }
 
-export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats, color }) => {
+export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats, color, strokeWidth = 2, fillOpacity = 0.2 }) => {
     const { currentTheme } = useGame();
     const theme = themes.find(t => t.id === currentTheme) || themes[0];
 
@@ -77,9 +79,9 @@ export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats, color }) =>
                         name="Skills"
                         dataKey="A"
                         stroke={color || theme.colors.primary}
-                        strokeWidth={2}
+                        strokeWidth={strokeWidth}
                         fill={color || theme.colors.primary}
-                        fillOpacity={0.2}
+                        fillOpacity={fillOpacity}
                         isAnimationActive={true}
                         activeDot={false}
                     />

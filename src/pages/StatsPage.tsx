@@ -39,25 +39,27 @@ export const StatsPage: React.FC = () => {
     const { primary, secondary, text, textSecondary, surface, border, background } = activeTheme.colors;
 
     // --- Graph Visibility Overrides (Strictly for Charts, leaving UI themes untouched) ---
-    const { graphPrimary, graphSecondary } = useMemo(() => {
+    const { graphPrimary, graphSecondary, graphStrokeWidth, graphFillOpacity } = useMemo(() => {
         const p = activeTheme.colors.primary;
         const s = activeTheme.colors.secondary;
+        const defaultWidth = isLightTheme ? 3 : 2;
+        const defaultOpacity = 0.2;
 
         switch (currentTheme) {
             case 'frigid-winter': // Fix similar blues (Steel vs Ice Blue)
-                return { graphPrimary: '#455A64', graphSecondary: '#29B6F6' }; // Darker Blue-Grey & Bright Light Blue
+                return { graphPrimary: '#455A64', graphSecondary: '#29B6F6', graphStrokeWidth: 3, graphFillOpacity: 0.4 };
             case 'forest-flow': // Fix invisible dark green (Use Neon Green)
-                return { graphPrimary: p, graphSecondary: '#22C55E' };
+                return { graphPrimary: p, graphSecondary: '#22C55E', graphStrokeWidth: defaultWidth, graphFillOpacity: defaultOpacity };
             case 'cold-nights': // Fix invisible dark blue (Use Cyan)
-                return { graphPrimary: '#FFFFFF', graphSecondary: '#818CF8' }; // White & Indigo
+                return { graphPrimary: '#FFFFFF', graphSecondary: '#818CF8', graphStrokeWidth: 3, graphFillOpacity: 0.5 }; // White, Thick, High Opacity
             case 'eclipse-skies': // Fix invisible dark purple (Use Bright Lavender)
-                return { graphPrimary: '#D8B4FE', graphSecondary: '#E879F9' }; // Lavender & Magenta
+                return { graphPrimary: '#D8B4FE', graphSecondary: '#E879F9', graphStrokeWidth: 3, graphFillOpacity: defaultOpacity };
             case 'soft-autumn': // Fix Tan on Tan (Use Dark Brown)
-                return { graphPrimary: '#5D4037', graphSecondary: '#A1887F' };
+                return { graphPrimary: '#5D4037', graphSecondary: '#A1887F', graphStrokeWidth: 3, graphFillOpacity: defaultOpacity };
             default:
-                return { graphPrimary: p, graphSecondary: s };
+                return { graphPrimary: p, graphSecondary: s, graphStrokeWidth: defaultWidth, graphFillOpacity: defaultOpacity };
         }
-    }, [currentTheme, activeTheme]);
+    }, [currentTheme, activeTheme, isLightTheme]);
 
     // Helper to determine if theme is "light" (for visibility adjustments)
     const isLightTheme = ['soft-autumn', 'spring-shower', 'frigid-winter'].includes(currentTheme);
@@ -528,7 +530,12 @@ export const StatsPage: React.FC = () => {
                         </ChartInfo>
                     </h3>
                     <div className="h-full max-h-[250px] flex items-center justify-center">
-                        <HexSkillGraph stats={userStats} color={graphPrimary} />
+                        <HexSkillGraph
+                            stats={userStats}
+                            color={graphPrimary}
+                            strokeWidth={graphStrokeWidth}
+                            fillOpacity={graphFillOpacity}
+                        />
                     </div>
                 </div>
 
