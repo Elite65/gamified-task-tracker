@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { CheckCircle2, Circle, Clock, Tag, MoreVertical, Edit2 } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Tag, MoreVertical, Edit2, AlertTriangle } from 'lucide-react';
 import { Task } from '../types';
+import { useGame } from '../context/GameContext';
 import { EditTaskModal } from './EditTaskModal';
 
 interface TaskCardProps {
@@ -11,7 +12,12 @@ interface TaskCardProps {
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onEdit, onDelete }) => {
+    const { userStats } = useGame();
     const [isEditOpen, setIsEditOpen] = useState(false);
+
+    // Check for legacy skills
+    const validSkillNames = Object.values(userStats.skills || {}).map(s => s.name);
+    const hasLegacySkills = task.skills.some(s => !validSkillNames.includes(s));
 
     const difficultyColors = {
         EASY: 'text-green-400 border-green-400/30 bg-green-400/10',
@@ -71,6 +77,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onEdit
                         >
                             <Edit2 className="w-4 h-4" />
                         </button>
+                        {hasLegacySkills && (
+                            <button
+                                onClick={() => setIsEditOpen(true)}
+                                title="Legacy/Unrecognized skills detected. Click to fix."
+                                className="p-2 text-amber-500 hover:bg-amber-500/10 rounded-lg transition-colors animate-pulse"
+                            >
+                                <AlertTriangle className="w-4 h-4" />
+                            </button>
+                        )}
                         <button
                             onClick={() => {
                                 // Toggle logic: If completed, reopen (to STARTED). If active, complete.
