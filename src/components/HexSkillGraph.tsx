@@ -76,11 +76,11 @@ export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats }) => {
                         name="Skills"
                         dataKey="A"
                         stroke={theme.colors.primary}
-                        strokeWidth={3}
+                        strokeWidth={2}
                         fill={theme.colors.primary}
-                        fillOpacity={0.4}
+                        fillOpacity={0.2}
                         isAnimationActive={true}
-                        dot={{ r: 4, fill: theme.colors.primary, strokeWidth: 0, fillOpacity: 1 }}
+                        activeDot={false}
                     />
                 </RadarChart>
             </ResponsiveContainer>
