@@ -33,7 +33,7 @@ export const themes: Theme[] = [
     {
         id: 'soft-autumn',
         name: 'Soft Autumn',
-        defaultBanner: '/banners/soft-autumn.jpg',
+        defaultBanner: '/banners/soft-autumn.png',
         colors: {
             background: '#EAE1D5', // Warm Beige
             surface: '#EBDFD0',    // Soft Sand
@@ -43,7 +43,6 @@ export const themes: Theme[] = [
             text: '#5D4037',       //  Deep Warm Brown
             textSecondary: '#8D6E63', // Muted Brown
         },
-        defaultBanner: '/banners/soft-autumn.png',
     },
     {
         id: 'spring-shower',

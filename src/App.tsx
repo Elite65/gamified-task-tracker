@@ -15,6 +15,7 @@ import { SignupPage } from './pages/SignupPage';
 
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { StatsPage } from './pages/StatsPage';
 
 import { ThemePreloader } from './components/ThemePreloader';
 
@@ -31,6 +32,7 @@ function App() {
                             <Route path="/tasks" element={<TasksPage />} />
                             <Route path="/habits" element={<HabitsPage />} />
                             <Route path="/courses" element={<CoursesPage />} />
+                            <Route path="/stats" element={<StatsPage />} />
                             <Route path="/settings" element={<SettingsPage />} />
                             <Route path="/login" element={<LoginPage />} />
                             <Route path="/signup" element={<SignupPage />} />

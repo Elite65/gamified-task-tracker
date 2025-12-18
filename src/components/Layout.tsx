@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutGrid, Calendar, Settings, CheckSquare, BookOpen, Clock, LogIn, LogOut, Camera, X, Repeat } from 'lucide-react';
+import { LayoutGrid, Calendar, Settings, CheckSquare, BookOpen, Clock, LogIn, LogOut, Camera, X, Repeat, BarChart2 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useTime } from '../hooks/useTime';
 import { avatars, storage, BUCKET_ID } from '../lib/appwrite';
@@ -66,6 +66,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
         { icon: Repeat, label: 'Habits', path: '/habits' },
         { icon: BookOpen, label: 'Courses', path: '/courses' },
+        { icon: BarChart2, label: 'Data', path: '/stats' },
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 
@@ -95,7 +96,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     );
 
     return (
-        <div className="flex h-screen bg-tech-bg text-tech-text font-sans selection:bg-tech-primary selection:text-black overflow-hidden">
+        <div className="flex h-[100dvh] bg-tech-bg text-tech-text font-sans selection:bg-tech-primary selection:text-black overflow-hidden">
             <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
             {croppingBanner && (
@@ -108,12 +109,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             )}
 
             {/* Sidebar (Desktop) */}
-            <aside className="hidden md:flex w-64 border-r border-tech-border bg-tech-surface flex-col p-6 z-20">
-                <div className="mb-10">
+            <aside className="hidden md:flex w-64 border-r border-tech-border bg-tech-surface flex-col z-20 h-full overflow-y-auto custom-scrollbar">
+                <div className="p-6 pb-0">
                     <ProfileSection />
                 </div>
 
-                <nav className="flex-1 space-y-4">
+                <nav className="flex-1 space-y-2 p-6">
                     {navItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         return (
@@ -132,39 +133,41 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     })}
                 </nav>
 
-                {/* Clock Widget (Mini) */}
-                <div className="mt-auto mb-8 p-6 rounded-2xl bg-tech-bg border border-tech-border/50">
-                    <div className="flex items-center gap-2 text-tech-text-secondary text-xs mb-2 font-bold tracking-wider">
-                        <Clock className="w-3 h-3" />
-                        <span>TIME</span>
+                <div className="p-6 mt-auto">
+                    {/* Clock Widget (Mini) */}
+                    <div className="mb-4 p-4 rounded-2xl bg-tech-bg border border-tech-border/50">
+                        <div className="flex items-center gap-2 text-tech-text-secondary text-xs mb-2 font-bold tracking-wider">
+                            <Clock className="w-3 h-3" />
+                            <span>TIME</span>
+                        </div>
+                        <div className="text-2xl font-mono font-bold text-tech-text">
+                            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                        <div className="text-[10px] text-tech-text-secondary mt-1 font-medium uppercase">
+                            {currentTime.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+                        </div>
                     </div>
-                    <div className="text-3xl font-mono font-bold text-tech-text">
-                        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                    <div className="text-xs text-tech-text-secondary mt-1 font-medium">
-                        {currentTime.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })}
-                    </div>
-                </div>
 
-                {/* Sidebar Footer (Auth) */}
-                <div className="pt-6 border-t border-tech-border/50">
-                    {user ? (
-                        <button
-                            onClick={logout}
-                            className="flex items-center gap-3 text-red-500 hover:text-red-400 transition-colors w-full px-2 font-bold"
-                        >
-                            <LogOut className="w-5 h-5" />
-                            <span>Logout</span>
-                        </button>
-                    ) : (
-                        <Link
-                            to="/login"
-                            className="flex items-center gap-3 text-tech-primary hover:text-tech-text transition-colors w-full px-2 font-bold"
-                        >
-                            <LogIn className="w-5 h-5" />
-                            <span>Login</span>
-                        </Link>
-                    )}
+                    {/* Sidebar Footer (Auth) */}
+                    <div className="pt-4 border-t border-tech-border/50">
+                        {user ? (
+                            <button
+                                onClick={logout}
+                                className="flex items-center gap-3 text-red-500 hover:text-red-400 transition-colors w-full px-2 font-bold"
+                            >
+                                <LogOut className="w-5 h-5" />
+                                <span>Logout</span>
+                            </button>
+                        ) : (
+                            <Link
+                                to="/login"
+                                className="flex items-center gap-3 text-tech-primary hover:text-tech-text transition-colors w-full px-2 font-bold"
+                            >
+                                <LogIn className="w-5 h-5" />
+                                <span>Login</span>
+                            </Link>
+                        )}
+                    </div>
                 </div>
             </aside>
 
@@ -243,7 +246,18 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     {location.pathname === '/tasks' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
                 </Link>
 
-                {/* 3. CENTER: Profile & Time */}
+                {/* 3. Habits */}
+                <Link
+                    to="/habits"
+                    className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/habits' ? 'text-tech-primary' : 'text-gray-500'}`}
+                >
+                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/habits' ? 'bg-tech-primary/10' : ''}`}>
+                        <Repeat className="w-6 h-6" strokeWidth={location.pathname === '/habits' ? 2.5 : 2} />
+                    </div>
+                    {location.pathname === '/habits' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
+                </Link>
+
+                {/* 4. CENTER: Profile & Time */}
                 <button
                     onClick={() => setIsProfileOpen(true)}
                     className="flex flex-col items-center gap-1 flex-1 relative -top-6"
@@ -265,17 +279,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     </div>
                 </button>
 
-                {/* 4. Habits */}
-                <Link
-                    to="/habits"
-                    className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/habits' ? 'text-tech-primary' : 'text-gray-500'}`}
-                >
-                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/habits' ? 'bg-tech-primary/10' : ''}`}>
-                        <Repeat className="w-6 h-6" strokeWidth={location.pathname === '/habits' ? 2.5 : 2} />
-                    </div>
-                    {location.pathname === '/habits' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
-                </Link>
-
                 {/* 5. Courses */}
                 <Link
                     to="/courses"
@@ -285,6 +288,17 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                         <BookOpen className="w-6 h-6" strokeWidth={location.pathname === '/courses' ? 2.5 : 2} />
                     </div>
                     {location.pathname === '/courses' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
+                </Link>
+
+                {/* 6. Data */}
+                <Link
+                    to="/stats"
+                    className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/stats' ? 'text-tech-primary' : 'text-gray-500'}`}
+                >
+                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/stats' ? 'bg-tech-primary/10' : ''}`}>
+                        <BarChart2 className="w-6 h-6" strokeWidth={location.pathname === '/stats' ? 2.5 : 2} />
+                    </div>
+                    {location.pathname === '/stats' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
                 </Link>
 
                 {/* 5. Settings */}

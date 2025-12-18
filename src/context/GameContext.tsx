@@ -55,6 +55,71 @@ const safeParse = (key: string, fallback: any) => {
     }
 };
 
+// Fuzzy Step Helper
+const levenshteinDistance = (a: string, b: string): number => {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1,
+                    Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+                );
+            }
+        }
+    }
+    return matrix[b.length][a.length];
+};
+
+const findBestMatch = (target: string, candidates: string[]) => {
+    const matches = candidates.filter(c => isSimilar(c, target));
+    if (matches.length === 0) return null;
+
+    return matches.sort((a, b) => {
+        const lowerT = target.toLowerCase();
+        const lowerA = a.toLowerCase();
+        const lowerB = b.toLowerCase();
+
+        // 1. Exact Match
+        if (lowerA === lowerT) return -1;
+        if (lowerB === lowerT) return 1;
+
+        // 2. Strong Substring (Candidate CONTAINS Target)
+        // Prefer "Internships and Future Prep" over "Future Prep"
+        const aContainsT = lowerA.includes(lowerT);
+        const bContainsT = lowerB.includes(lowerT);
+
+        if (aContainsT && !bContainsT) return -1;
+        if (!aContainsT && bContainsT) return 1;
+
+        // 3. Distance (Tie breaker)
+        const distA = levenshteinDistance(lowerA, lowerT);
+        const distB = levenshteinDistance(lowerB, lowerT);
+        return distA - distB;
+    })[0];
+};
+
+const isSimilar = (a: string, b: string): boolean => {
+    const lowerA = a.toLowerCase();
+    const lowerB = b.toLowerCase();
+    if (lowerA === lowerB) return true;
+    // Includes check (e.g. "Coding" vs "Code")
+    if ((lowerA.length > 3 && lowerB.length > 3) && (lowerA.includes(lowerB) || lowerB.includes(lowerA))) return true;
+    // Fuzzy check (e.g. "Intelligent" vs "Intelligence")
+    if (lowerA.length > 3 && lowerB.length > 3) {
+        return levenshteinDistance(lowerA, lowerB) <= 3; // Allow 3 typos/diffs
+    }
+    return false;
+};
+
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { showToast } = useToast();
     const [user, setUser] = useState<any>(null);
@@ -248,10 +313,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const lowerSkillTag = skillName.toLowerCase();
 
             // Find matching skill in user stats
-            const matchingSkillKey = Object.keys(newStats.skills).find(key => {
-                const lowerKey = key.toLowerCase();
-                return lowerKey.includes(lowerSkillTag) || lowerSkillTag.includes(lowerKey);
-            });
+            // Use findBestMatch to get the closest semantic match
+            const allSkills = Object.keys(newStats.skills);
+            const matchingSkillKey = findBestMatch(skillName, allSkills);
 
             if (matchingSkillKey) {
                 const currentSkill = newStats.skills[matchingSkillKey];
@@ -328,7 +392,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (skillName.startsWith('quadrant:')) return;
 
             const lowerSkillTag = skillName.toLowerCase();
-            const exists = Object.keys(newStats.skills).some(k => k.toLowerCase() === lowerSkillTag);
+            const matchingKey = findBestMatch(skillName, Object.keys(newStats.skills));
+            const exists = !!matchingKey;
 
             if (!exists) {
                 // Register new skill
@@ -373,6 +438,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Optimistic Update
         setTasks(prev => [...prev, newTask]);
+
+        // Trigger XP if created as COMPLETED
+        if (newTask.status === 'COMPLETED') {
+            gainXp(newTask.difficulty, newTask.skills, 1);
+        }
+
         showToast('New mission initialized', { type: 'success' });
 
         // Cloud Sync
@@ -430,9 +501,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => {
-        // 1. Check for new skills if they are being updated
         if (updates.skills) {
             checkAndRegisterSkills(updates.skills);
+        }
+
+        const currentTask = tasks.find(t => t.id === taskId);
+        if (currentTask) {
+            // Handle Status Change via Edit
+            if (updates.status && updates.status !== currentTask.status) {
+                if (updates.status === 'COMPLETED') {
+                    // Use new skills if provided, else old skills
+                    gainXp(currentTask.difficulty, updates.skills || currentTask.skills, 1);
+                } else if (currentTask.status === 'COMPLETED') {
+                    gainXp(currentTask.difficulty, currentTask.skills, -1);
+                }
+            }
         }
 
         // Optimistic Update
