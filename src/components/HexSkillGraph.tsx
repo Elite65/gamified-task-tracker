@@ -6,9 +6,10 @@ import { UserStats } from '../types';
 
 interface HexSkillGraphProps {
     stats: UserStats;
+    color?: string;
 }
 
-export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats }) => {
+export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats, color }) => {
     const { currentTheme } = useGame();
     const theme = themes.find(t => t.id === currentTheme) || themes[0];
 
@@ -75,9 +76,9 @@ export const HexSkillGraph: React.FC<HexSkillGraphProps> = ({ stats }) => {
                     <Radar
                         name="Skills"
                         dataKey="A"
-                        stroke={theme.colors.primary}
+                        stroke={color || theme.colors.primary}
                         strokeWidth={2}
-                        fill={theme.colors.primary}
+                        fill={color || theme.colors.primary}
                         fillOpacity={0.2}
                         isAnimationActive={true}
                         activeDot={false}

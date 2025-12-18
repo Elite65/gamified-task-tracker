@@ -45,13 +45,15 @@ export const StatsPage: React.FC = () => {
 
         switch (currentTheme) {
             case 'frigid-winter': // Fix similar blues (Steel vs Ice Blue)
-                return { graphPrimary: '#546E7A', graphSecondary: '#81D4FA' };
+                return { graphPrimary: '#455A64', graphSecondary: '#29B6F6' }; // Darker Blue-Grey & Bright Light Blue
             case 'forest-flow': // Fix invisible dark green (Use Neon Green)
                 return { graphPrimary: p, graphSecondary: '#22C55E' };
             case 'cold-nights': // Fix invisible dark blue (Use Cyan)
-                return { graphPrimary: p, graphSecondary: '#22D3EE' };
-            case 'eclipse-skies': // Fix invisible dark purple (Use Bright Purple)
-                return { graphPrimary: p, graphSecondary: '#A855F7' };
+                return { graphPrimary: '#22D3EE', graphSecondary: '#818CF8' }; // Cyan & Indigo
+            case 'eclipse-skies': // Fix invisible dark purple (Use Bright Lavender)
+                return { graphPrimary: '#D8B4FE', graphSecondary: '#E879F9' }; // Lavender & Magenta
+            case 'soft-autumn': // Fix Tan on Tan (Use Dark Brown)
+                return { graphPrimary: '#5D4037', graphSecondary: '#A1887F' };
             default:
                 return { graphPrimary: p, graphSecondary: s };
         }
@@ -526,7 +528,7 @@ export const StatsPage: React.FC = () => {
                         </ChartInfo>
                     </h3>
                     <div className="h-full max-h-[250px] flex items-center justify-center">
-                        <HexSkillGraph stats={userStats} />
+                        <HexSkillGraph stats={userStats} color={graphPrimary} />
                     </div>
                 </div>
 
