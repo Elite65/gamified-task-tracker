@@ -162,12 +162,20 @@ export const StatsPage: React.FC = () => {
     }, [userStats.xp, habitLogs, tasks]);
 
     // Helper: Calculate Streak based on logs
-    const calculateStreak = (habitId: string, logs: typeof habitLogs) => {
+    // Helper: Calculate Streak based on logs
+    const calculateStreak = (habitId: string, goalAmount: number, logs: typeof habitLogs) => {
+        // Filter logs generally for this habit
         const habitLogsForId = logs.filter(l => l.habitId === habitId);
-        if (habitLogsForId.length === 0) return 0;
+
+        // Filter logs that MEET THE GOAL
+        // Note: logs should be unique by date based on context logic, but if not, logic holds for 'best entry' or we'd need to sum. 
+        // Assuming strict 'value' replaces previous.
+        const validLogs = habitLogsForId.filter(l => l.value >= goalAmount);
+
+        if (validLogs.length === 0) return 0;
 
         // Sort logs descending
-        const sortedDates = [...new Set(habitLogsForId.map(l => l.date))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+        const sortedDates = [...new Set(validLogs.map(l => l.date))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
         let streak = 0;
         const today = new Date();
@@ -179,7 +187,7 @@ export const StatsPage: React.FC = () => {
 
         const diffDays = (today.getTime() - latestLogDate.getTime()) / (1000 * 3600 * 24);
 
-        if (diffDays > 1) return 0; // Streak broken if no log today or yesterday
+        if (diffDays > 1) return 0; // Streak broken if no valid log today or yesterday
 
         // Count backwards
         for (let i = 0; i < sortedDates.length; i++) {
@@ -201,7 +209,7 @@ export const StatsPage: React.FC = () => {
 
     // 4. Habit Streaks (All Habits, Sorted by Streak)
     const streakData = useMemo(() => habits
-        .map(h => ({ name: h.title, streak: calculateStreak(h.id, habitLogs) }))
+        .map(h => ({ name: h.title, streak: calculateStreak(h.id, h.goalAmount, habitLogs) })) // Pass goalAmount
         .sort((a, b) => b.streak - a.streak)
         .slice(0, 6) // Show top 6
         , [habits, habitLogs]);

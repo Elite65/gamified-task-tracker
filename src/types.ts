@@ -16,6 +16,9 @@ export interface Task {
     createdAt: number;
     dueDate?: number; // Timestamp
     endTime?: number; // Timestamp or duration
+    $id?: string;
+    $createdAt?: string;
+    $updatedAt?: string;
 }
 
 export interface Tracker {

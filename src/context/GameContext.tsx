@@ -16,7 +16,7 @@ interface GameContextType {
     updateTaskStatus: (taskId: string, status: TaskStatus) => void;
     updateTask: (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void;
     deleteTask: (taskId: string) => void;
-    addTracker: (tracker: Omit<Tracker, 'id'>) => void;
+    addTracker: (tracker: Omit<Tracker, 'id'>) => Promise<string>;
     deleteTracker: (trackerId: string) => void;
     resetStats: () => void;
     setStats: (stats: UserStats) => void;
@@ -524,7 +524,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUserStats(currentStats);
         if (user) await syncStatsToCloud(currentStats, user);
 
-        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
+        // Optimistic Update with Timestamp for Chronotype Accuracy
+        setTasks(prev => prev.map(t => t.id === taskId ? {
+            ...t,
+            ...updates,
+            $updatedAt: new Date().toISOString() // Force update time for stats
+        } : t));
         showToast('Mission parameters updated.', { type: 'success' });
 
         if (user) {
@@ -565,7 +570,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const addTracker = async (trackerData: Omit<Tracker, 'id'>) => {
+    const addTracker = async (trackerData: Omit<Tracker, 'id'>): Promise<string> => {
         const newTracker: Tracker = {
             ...trackerData,
             id: user ? ID.unique() : crypto.randomUUID(),
@@ -586,6 +591,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 showToast(`Sync Failed: ${e.message}`, { type: 'error' });
             }
         }
+        return newTracker.id;
     };
 
     const deleteTracker = async (trackerId: string) => {

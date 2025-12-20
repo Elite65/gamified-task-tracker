@@ -18,6 +18,7 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { StatsPage } from './pages/StatsPage';
 
 import { ThemePreloader } from './components/ThemePreloader';
+import { ChatWidget } from './components/ChatWidget';
 
 function App() {
     return (
@@ -40,6 +41,7 @@ function App() {
                             <Route path="/reset-password" element={<ResetPasswordPage />} />
                             <Route path="/tracker/:id" element={<TrackerView />} />
                         </Routes>
+                        <ChatWidget />
                     </Layout>
                 </BrowserRouter>
             </GameProvider>
