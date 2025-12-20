@@ -368,7 +368,7 @@ export const ChatWidget: React.FC = () => {
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-2xl hover:scale-105 transition-transform duration-300 group"
+                className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-50 p-4 rounded-full shadow-2xl hover:scale-105 transition-transform duration-300 group"
                 style={{ backgroundColor: surface, border: `1px solid ${border}` }}
             >
                 <div className="absolute inset-0 rounded-full animate-pulse opacity-50" style={{ boxShadow: `0 0 20px ${primary}` }}></div>
@@ -397,7 +397,7 @@ export const ChatWidget: React.FC = () => {
     const contrastColor = getContrastColor(primary);
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+        <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-50 flex flex-col items-end gap-4">
 
             {/* LISTENING MODE OVERLAY */}
             {isListening && (
