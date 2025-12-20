@@ -230,6 +230,15 @@ export const KNOWLEDGE_BASE: KnowledgeRule[] = [
         regex: /(what.*project muted|define project muted|about project muted|why.*project muted)/i,
         response: () => "Information Access Denied: Creator Id not found."
     },
+    // --- IDENTITY & INTRODUCTION ---
+    {
+        regex: /(who are you|your name|identify yourself)/i,
+        response: () => "I am Elite65, a tactical cognitive support system designed to gamify your productivity. I track your missions, analyze your consistency, and visualize your growth."
+    },
+    {
+        regex: /(what is this|introduce.*(tool|app|website)|explain.*(system|platform)|what.*do)/i,
+        response: () => "This is the 'Gamified Task Tracker' (Protocol: Elite65). It turns your life into an RPG. \n- completing Tasks grants XP.\n- Habits build Streaks.\n- Skills are visualized on the Hex Graph.\nMy role is to serve as your HUD and tactical advisor."
+    },
     // --- SYSTEM STATUS: VOICE / ACTIVE FEATURES (STATUS) ---
     {
         // Catches "Why voice disabled", "Speak to me", or just generic "Project Muted" mention if not a definition query
