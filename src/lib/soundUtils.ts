@@ -4,7 +4,7 @@
 let audioCtx: AudioContext | null = null;
 let intervalId: any = null;
 
-const initAudio = () => {
+export const initAudio = () => {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
