@@ -178,23 +178,31 @@ export const SettingsPage: React.FC = () => {
                             <div className="mt-4 pt-4 border-t border-tech-border flex justify-center">
                                 <button
                                     onClick={() => {
-                                        if ('serviceWorker' in navigator && 'Notification' in window) {
-                                            Notification.requestPermission().then(perm => {
-                                                if (perm === 'granted') {
-                                                    navigator.serviceWorker.ready.then(reg => {
+                                        if (!('serviceWorker' in navigator) || !('Notification' in window)) {
+                                            alert("Error: capabilities missing. SW: " + ('serviceWorker' in navigator) + ", Notify: " + ('Notification' in window));
+                                            return;
+                                        }
+
+                                        alert("Debug: Current State = " + Notification.permission);
+
+                                        Notification.requestPermission().then(perm => {
+                                            if (perm === 'granted') {
+                                                navigator.serviceWorker.ready.then(reg => {
+                                                    try {
                                                         reg.showNotification("🚨 Test Notification", {
                                                             body: "If you see this, the system is working!",
                                                             icon: '/icon-192.png',
                                                             vibrate: [200, 100, 200]
                                                         } as any);
-                                                    });
-                                                } else {
-                                                    alert("Permission denied! Check System Settings -> Apps -> Elite65 -> Notifications");
-                                                }
-                                            });
-                                        } else {
-                                            alert("Notifications not supported in this environment");
-                                        }
+                                                        alert("Sent! Check status bar.");
+                                                    } catch (e: any) {
+                                                        alert("Error showing: " + e.message);
+                                                    }
+                                                }).catch(e => alert("SW Error: " + e.message));
+                                            } else {
+                                                alert("Denied/Ignored. State: " + perm + ". Go to Android Settings > Apps > Elite65 > Allow Notifications.");
+                                            }
+                                        });
                                     }}
                                     className="text-xs text-tech-text-secondary underline hover:text-tech-primary transition-colors"
                                 >
