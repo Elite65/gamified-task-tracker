@@ -41,18 +41,32 @@ export default defineConfig({
         ],
         screenshots: [
           {
-            src: 'pwa-512x512.png', // Placeholder for now, user needs to add real screenshots
-            sizes: '512x512',
+            src: 'screenshots/dashboard-wide.png',
+            sizes: '1280x720',
             type: 'image/png',
             form_factor: 'wide',
-            label: 'Dashboard Overview'
+            label: 'Dashboard Command Center'
           },
           {
-            src: 'pwa-192x192.png', // Placeholder
-            sizes: '192x192',
+            src: 'screenshots/analytics-mobile.png',
+            sizes: '450x800',
             type: 'image/png',
             form_factor: 'narrow',
-            label: 'Mobile Task List'
+            label: 'Advanced Analytics (Mobile)'
+          },
+          {
+            src: 'screenshots/habits-wide.png',
+            sizes: '1280x720',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'Habit Protocols'
+          },
+          {
+            src: 'screenshots/tasks-wide.png',
+            sizes: '1280x720',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'Mission Control'
           }
         ]
       }
