@@ -16,13 +16,17 @@ export default defineConfig({
         theme_color: '#1a1a1a',
         background_color: '#1a1a1a',
         display: 'standalone',
+        display_override: ['window-controls-overlay', 'minimal-ui'],
         orientation: 'portrait-primary',
         scope: '/',
         start_url: '/',
         id: 'elite65-task-tracker',
+        dir: 'ltr',
+        lang: 'en-US',
         categories: ['productivity', 'utilities', 'lifestyle'],
         iarc_rating_id: 'e84b072d-71b3-4d3e-86ae-31a8ce4e53b7', // Generic IARC for Utility
         prefer_related_applications: false,
+        related_applications: [],
         shortcuts: [
           {
             name: 'My Tasks',
