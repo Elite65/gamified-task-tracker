@@ -107,8 +107,8 @@ export const SettingsPage: React.FC = () => {
                                 onClick={handleInstallPWA}
                                 disabled={!deferredPrompt}
                                 className={`mt-auto w-full py-2 rounded-lg font-bold text-sm transition-all ${deferredPrompt
-                                        ? 'bg-tech-primary text-black hover:bg-tech-primary/80'
-                                        : 'bg-tech-border/20 text-tech-text-secondary border border-tech-border cursor-not-allowed'
+                                    ? 'bg-tech-primary text-black hover:bg-tech-primary/80'
+                                    : 'bg-tech-border/20 text-tech-text-secondary border border-tech-border cursor-not-allowed'
                                     }`}
                             >
                                 {deferredPrompt ? 'INSTALL APP' : 'INSTALLED / UNSUPPORTED'}
@@ -125,11 +125,13 @@ export const SettingsPage: React.FC = () => {
                                 Download the Native APK Wrapper. Supports home screen installation.
                             </p>
                             <a
-                                href="#" // Placeholder for user input later
-                                onClick={(e) => { e.preventDefault(); alert("Please generate the APK using PWABuilder and add the link here!"); }}
-                                className="mt-auto w-full py-2 bg-green-500/10 border border-green-500/50 text-green-400 hover:bg-green-500/20 rounded-lg font-bold text-sm text-center transition-all"
+                                href="https://github.com/Elite65/gamified-task-tracker/releases/download/v1.0.0/Elite65.apk"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-auto w-full py-2 bg-green-500/10 border border-green-500/50 text-green-400 hover:bg-green-500/20 rounded-lg font-bold text-sm text-center transition-all flex items-center justify-center gap-2"
                             >
-                                DOWNLOAD APK
+                                <Download className="w-4 h-4" />
+                                DOWNLOAD APK (v1.0)
                             </a>
                         </div>
 
