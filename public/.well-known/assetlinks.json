@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "app.vercel.elite65_task_tracker_2025.twa",
+            "sha256_cert_fingerprints": [
+                "3E:06:A7:06:99:3F:5D:6D:B2:10:AD:92:75:A4:56:E9:82:03:13:44:06:94:CD:9D:DF:27:54:A7:DB:CD:BA:F8"
+            ]
+        }
+    }
+]
