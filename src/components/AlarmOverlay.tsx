@@ -24,13 +24,20 @@ export const AlarmOverlay: React.FC = () => {
                 if (triggered.length > 0) {
                     playAlarmSound();
 
-                    // Trigger Native Notification
-                    if ('Notification' in window && Notification.permission === 'granted') {
-                        triggered.forEach(alarm => {
-                            new Notification("🚨 ALARM ACTIVE: " + alarm.title, {
-                                body: "Tap to dismiss protocol.",
-                                icon: '/icon-192.png',
-                                tag: alarm.id // Prevent duplicate notifications for same alarm
+                    // Trigger Native Notification (via Service Worker for better Android support)
+                    if ('serviceWorker' in navigator && 'Notification' in window && Notification.permission === 'granted') {
+                        navigator.serviceWorker.ready.then(registration => {
+                            triggered.forEach(alarm => {
+                                registration.showNotification("🚨 ALARM ACTIVE: " + alarm.title, {
+                                    body: "Tap to dismiss protocol.",
+                                    icon: '/icon-192.png',
+                                    badge: '/icon-192.png',
+                                    vibrate: [200, 100, 200, 100, 200],
+                                    tag: alarm.id,
+                                    renotify: true,
+                                    requireInteraction: true,
+                                    data: { url: '/' }
+                                } as any);
                             });
                         });
                     }
