@@ -192,9 +192,13 @@ export const SettingsPage: React.FC = () => {
                                                 navigator.serviceWorker.ready.then(reg => {
                                                     try {
                                                         reg.showNotification("🚨 Test Notification", {
-                                                            body: "System verified.",
+                                                            body: "Vibration + Banner Check",
                                                             icon: '/icon-192.png',
-                                                            vibrate: [200, 100, 200]
+                                                            badge: '/icon-192.png',
+                                                            vibrate: [200, 100, 200, 100, 200],
+                                                            tag: 'debug-test',
+                                                            renotify: true,
+                                                            requireInteraction: true
                                                         } as any);
                                                         alert("Sent to Service Worker!");
                                                     } catch (e: any) {
