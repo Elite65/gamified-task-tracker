@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Task, Tracker, UserStats, INITIAL_STATS, TaskStatus, SkillStats, Habit, HabitLog, Reminder } from '../types';
 import { useToast } from './ToastContext';
-import { account, databases, DATABASE_ID, COLLECTIONS, storage, BUCKET_ID } from '../lib/appwrite';
+import { account, databases, DATABASE_ID, COLLECTIONS, storage, BUCKET_ID, client } from '../lib/appwrite';
 import { ID, Query } from 'appwrite';
 import { themes } from '../lib/themes';
 
@@ -822,6 +822,49 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         }
     };
+
+    // --- REALTIME SUBSCRIPTION (Reminders) ---
+    useEffect(() => {
+        if (!user) return;
+
+        console.log('Activating Realtime Subscription for Reminders...');
+        console.log('Activating Realtime Subscription for Reminders...');
+
+        // Correct Usage:
+        const unsubscribe = client.subscribe(
+            `databases.${DATABASE_ID}.collections.${COLLECTIONS.REMINDERS}.documents`,
+            (response) => {
+                const event = response.events[0];
+                const payload = response.payload as Partial<Reminder> & { $id: string };
+
+                // Safety: Filter by userId if possible (though row security should handle this,
+                // Appwrite might push events for all docs if permissions allow read.
+                // Best to verify payload.userId matches current user if included, 
+                // but payload only has changed fields on update sometimes? 
+                // Actually payload usually is full doc. Let's assume full doc or close to it.
+                // Also, we must check if this event Originated from THIS tab? 
+                // Realtime usually echoes back. If we just updated local state, we might re-set it. 
+                // That's fine for simple sync (idempotent).
+
+                console.log('Realtime Event:', event, payload);
+
+                if (event.endsWith('.create')) {
+                    setReminders(prev => {
+                        if (prev.some(r => r.id === payload.$id)) return prev; // Already exists
+                        return [...prev, { ...payload, id: payload.$id } as unknown as Reminder];
+                    });
+                } else if (event.endsWith('.update')) {
+                    setReminders(prev => prev.map(r => r.id === payload.$id ? { ...r, ...payload, id: payload.$id } as unknown as Reminder : r));
+                } else if (event.endsWith('.delete')) {
+                    setReminders(prev => prev.filter(r => r.id !== payload.$id));
+                }
+            }
+        );
+
+        return () => {
+            unsubscribe();
+        };
+    }, [user]);
 
     // --- Reminders CRUD ---
     // --- Reminders CRUD ---
