@@ -178,37 +178,43 @@ export const SettingsPage: React.FC = () => {
                             <div className="mt-4 pt-4 border-t border-tech-border flex justify-center">
                                 <button
                                     onClick={() => {
+                                        // 1. Basic Capability Check
                                         if (!('serviceWorker' in navigator) || !('Notification' in window)) {
-                                            alert("Error: capabilities missing. SW: " + ('serviceWorker' in navigator) + ", Notify: " + ('Notification' in window));
+                                            alert("System Requirement Missing: ServiceWorker or Notification API not supported.");
                                             return;
                                         }
 
-                                        alert("Debug: Initial State = " + Notification.permission + "\nSW Controller: " + (navigator.serviceWorker.controller ? "Active" : "NULL"));
-
+                                        // 2. Permission Check & Request
                                         Notification.requestPermission().then(perm => {
-                                            alert("Debug: User Choice Result = " + perm);
-
                                             if (perm === 'granted') {
+                                                if (!navigator.serviceWorker.controller) {
+                                                    alert("Warning: Service Worker not controlling page. Attempting anyway... (Try refreshing the app if this fails)");
+                                                }
+
+                                                // 3. User Instruction for Background Test
+                                                alert("Permission Active! 🎬\n\nStarting 5-second countdown.\n\nMINIMIZE THE APP NOW to test background behavior.");
+
                                                 navigator.serviceWorker.ready.then(reg => {
-                                                    alert("Grant confirmed! \n\nNOW MINIMIZE THE APP (Home Screen). \n\nWaiting 5 seconds...");
                                                     setTimeout(() => {
                                                         try {
-                                                            reg.showNotification("🚨 Delayed Test", {
-                                                                body: "It worked! You are seeing this in the background.",
+                                                            reg.showNotification("🚨 Elite65 Test", {
+                                                                body: "System Protocol Active. Background check passed.",
                                                                 icon: '/icon-192.png',
                                                                 badge: '/icon-192.png',
                                                                 vibrate: [200, 100, 200, 100, 200],
-                                                                tag: 'debug-test',
+                                                                tag: 'debug-test-' + Date.now(), // Unique tag to force new notification
                                                                 renotify: true,
-                                                                requireInteraction: true
+                                                                requireInteraction: true,
+                                                                data: { url: '/' }
                                                             } as any);
                                                         } catch (e: any) {
-                                                            console.error(e);
+                                                            console.error("Notify Error:", e);
+                                                            alert("Error triggering notification: " + e.message);
                                                         }
                                                     }, 5000);
-                                                }).catch(e => alert("SW Error: " + e.message));
+                                                });
                                             } else {
-                                                alert("Permission NOT granted. Result: " + perm);
+                                                alert("Permission Blocked (" + perm + ").\n\nPlease go to Android Settings -> Apps -> Elite65 -> Permissions -> Notifications and Allow.");
                                             }
                                         });
                                     }}
