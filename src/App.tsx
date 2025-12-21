@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { GameProvider } from './context/GameContext';
 import { ToastProvider } from './context/ToastContext';
@@ -21,8 +21,26 @@ import { RemindersPage } from './pages/RemindersPage';
 import { ThemePreloader } from './components/ThemePreloader';
 import { ChatWidget } from './components/ChatWidget';
 import { AlarmOverlay } from './components/AlarmOverlay';
+import { initAudio } from './lib/soundUtils';
 
 function App() {
+    // Unlock AudioContext on first user interaction
+    useEffect(() => {
+        const unlockAudio = () => {
+            initAudio();
+            window.removeEventListener('click', unlockAudio);
+            window.removeEventListener('keydown', unlockAudio);
+        };
+
+        window.addEventListener('click', unlockAudio);
+        window.addEventListener('keydown', unlockAudio);
+
+        return () => {
+            window.removeEventListener('click', unlockAudio);
+            window.removeEventListener('keydown', unlockAudio);
+        };
+    }, []);
+
     return (
         <ToastProvider>
             <GameProvider>
