@@ -190,20 +190,22 @@ export const SettingsPage: React.FC = () => {
 
                                             if (perm === 'granted') {
                                                 navigator.serviceWorker.ready.then(reg => {
-                                                    try {
-                                                        reg.showNotification("🚨 Test Notification", {
-                                                            body: "Vibration + Banner Check",
-                                                            icon: '/icon-192.png',
-                                                            badge: '/icon-192.png',
-                                                            vibrate: [200, 100, 200, 100, 200],
-                                                            tag: 'debug-test',
-                                                            renotify: true,
-                                                            requireInteraction: true
-                                                        } as any);
-                                                        alert("Sent to Service Worker!");
-                                                    } catch (e: any) {
-                                                        alert("Error showing: " + e.message);
-                                                    }
+                                                    alert("Grant confirmed! \n\nNOW MINIMIZE THE APP (Home Screen). \n\nWaiting 5 seconds...");
+                                                    setTimeout(() => {
+                                                        try {
+                                                            reg.showNotification("🚨 Delayed Test", {
+                                                                body: "It worked! You are seeing this in the background.",
+                                                                icon: '/icon-192.png',
+                                                                badge: '/icon-192.png',
+                                                                vibrate: [200, 100, 200, 100, 200],
+                                                                tag: 'debug-test',
+                                                                renotify: true,
+                                                                requireInteraction: true
+                                                            } as any);
+                                                        } catch (e: any) {
+                                                            console.error(e);
+                                                        }
+                                                    }, 5000);
                                                 }).catch(e => alert("SW Error: " + e.message));
                                             } else {
                                                 alert("Permission NOT granted. Result: " + perm);
