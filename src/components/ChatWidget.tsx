@@ -6,7 +6,7 @@ import { ChatMessage, processQuery, ELITE65_AVATAR } from '../lib/knowledgeBase'
 import { Elite65Icon } from './Elite65Icon';
 
 export const ChatWidget: React.FC = () => {
-    const { currentTheme, tasks, habits, userStats, habitLogs, addTask, deleteTask, updateTask, deleteTracker, addTracker, trackers } = useGame();
+    const { currentTheme, tasks, habits, userStats, habitLogs, addTask, deleteTask, updateTask, deleteTracker, addTracker, trackers, reminders } = useGame();
     const theme = themes.find(t => t.id === currentTheme) || themes[0];
     const { primary, secondary, surface, border, text, textSecondary, background } = theme.colors;
 
@@ -219,7 +219,7 @@ export const ChatWidget: React.FC = () => {
         // Simulate Bot processing time
         setTimeout(async () => {
             // Pass the full context AND last topic to the knowledge base
-            const result = processQuery(userMsg.text, { tasks, habits, userStats, habitLogs }, topic);
+            const result = processQuery(userMsg.text, { tasks, habits, userStats, habitLogs, reminders }, topic);
 
             // Update topic if the bot set a new one
             if (result.newTopic) {
@@ -238,21 +238,20 @@ export const ChatWidget: React.FC = () => {
                     let finalTrackerId = payload.trackerId;
 
                     // If payload has a 'tracker' name instead of ID, resolve it
-                    // If payload has a 'tracker' name instead of ID, resolve it
                     if (payload.tracker && !payload.trackerId) {
-                        const existing = trackers.find(t => t.name.toLowerCase() === payload.tracker.toLowerCase());
+                        const trackerName = payload.tracker; // Copy to local
+                        const existing = trackers.find(t => t.name.toLowerCase() === trackerName.toLowerCase());
 
                         if (existing) {
                             finalTrackerId = existing.id;
                         } else {
                             // Try Fuzzy Match (reuse findBestMatch helper)
-                            const bestMatch = findBestMatch(payload.tracker, trackers);
+                            const bestMatch = findBestMatch(trackerName, trackers);
                             if (bestMatch) {
                                 finalTrackerId = bestMatch.id;
                             } else {
                                 // DO NOT auto-create. If we can't find it, fallback to default.
-                                // Or notify user (harder to do here without async response back, but fallback is safer)
-                                console.warn(`Tracker '${payload.tracker}' not found. Using default.`);
+                                console.warn(`Tracker '${trackerName}' not found. Using default.`);
                             }
                         }
                     } else if (!finalTrackerId && trackers.length > 0) {
@@ -262,9 +261,7 @@ export const ChatWidget: React.FC = () => {
 
                     if (finalTrackerId) {
                         // FIX: Remove 'tracker' string from payload before sending to addTask/Appwrite
-                        // Appwrite errors if unknown attributes are present
-                        const cleanPayload = { ...payload };
-                        delete cleanPayload.tracker;
+                        const { tracker, ...cleanPayload } = payload;
 
                         addTask({
                             ...cleanPayload,
@@ -309,10 +306,11 @@ export const ChatWidget: React.FC = () => {
                         const bestTask = findBestMatch(taskName, candidates) as (typeof tasks[0] & { name: string }) | null;
 
                         if (bestTask) {
+                            // Destructure and remove 'name' which was added for fuzzy match
+                            // @ts-ignore
                             const { name, ...taskProps } = bestTask;
 
                             // Resolve Tracker Name to ID if present
-                            // This prevents 'tracker' string from breaking Appwrite and ensures move works
                             const cleanUpdates = { ...updates };
                             if (cleanUpdates.tracker) {
                                 const trName = cleanUpdates.tracker;
@@ -321,18 +319,10 @@ export const ChatWidget: React.FC = () => {
 
                                 if (targetTracker) {
                                     cleanUpdates.trackerId = targetTracker.id;
-                                    // Remove the temporary string
                                     delete cleanUpdates.tracker;
                                 } else {
-                                    // If tracker not found, maybe ignore it or keep it? 
-                                    // Better to remove it to avoid Errors if Appwrite is strict.
                                     delete cleanUpdates.tracker;
                                 }
-                            }
-
-                            // Also handle implicit title if present
-                            if (cleanUpdates.title) {
-                                // Title is already in updates, good.
                             }
 
                             const updatedTask = { ...taskProps, ...cleanUpdates };

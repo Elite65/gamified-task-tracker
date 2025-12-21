@@ -81,3 +81,11 @@ export const INITIAL_STATS: UserStats = {
         Precision: { name: 'Precision', value: 0, level: 1 },
     }
 };
+
+export interface Reminder {
+    id: string;
+    title: string;
+    time: number; // Timestamp
+    isEnabled: boolean;
+    isRecurring?: boolean; // For future
+}

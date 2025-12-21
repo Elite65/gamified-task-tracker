@@ -1,4 +1,4 @@
-import { Task, UserStats, Habit, HabitLog } from '../types';
+import { Task, UserStats, Habit, HabitLog, Reminder } from '../types';
 
 export interface ChatMessage {
     id: string;
@@ -13,6 +13,7 @@ interface GameContext {
     habits: Habit[];
     userStats: UserStats;
     habitLogs: HabitLog[];
+    reminders: Reminder[];
 }
 
 // --- REFACTORED INTERFACES ---
@@ -54,7 +55,7 @@ const FALLBACKS = [
 // Context can include: current page, user level, pending tasks count, etc.
 export const processQuery = (query: string, context?: GameContext, lastTopic?: string): QueryResult => {
     // Default empty context
-    const safeContext: GameContext = context || { tasks: [], habits: [], userStats: { level: 1, xp: 0, nextLevelXp: 100, streak: 0, lastLogin: '', skills: {} }, habitLogs: [] };
+    const safeContext: GameContext = context || { tasks: [], habits: [], userStats: { level: 1, xp: 0, nextLevelXp: 100, streak: 0, lastLogin: '', skills: {} }, habitLogs: [], reminders: [] };
 
     // 1. Split Query (Multi-Question Support) logic simplified for Context Mode
     // For context mode, we primarily handle the first intent to establish context, 
@@ -430,6 +431,43 @@ export const KNOWLEDGE_BASE: KnowledgeRule[] = [
         setTopic: 'HABITS', // General habit topic
         response: (ctx) => {
             return "Habit Protocols are recurring objectives. \n- **Streak Logic**: You must log data **DAILY** (no gaps > 1 day) to maintain streaks.\n- **Completion**: Only meeting the Goal Amount (e.g. 10 pages) counts as a valid day.";
+        }
+    },
+
+    // --- DYNAMIC: REMINDERS ---
+    {
+        regex: /(what.*reminders?|define.*reminders?)/i,
+        response: () => "Tactical Alerts (Reminders) are time-sensitive protocols. Unlike tasks, they trigger an active alarm system to ensure immediate attention for critical events."
+    },
+    {
+        regex: /(next.*reminder|upcoming.*reminder|when.*next.*alarm)/i,
+        response: (ctx) => {
+            const now = Date.now();
+            const upcoming = ctx.reminders
+                .filter(r => r.isEnabled && r.time > now)
+                .sort((a, b) => a.time - b.time);
+
+            if (upcoming.length === 0) return "No active alerts scheduled. You are clear.";
+
+            const next = upcoming[0];
+            const date = new Date(next.time);
+            return `Next Alert: "${next.title}" scheduled for ${date.toLocaleDateString()} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`;
+        }
+    },
+    {
+        regex: /(list.*reminders?|remaining.*reminders?|all.*reminders?|what.*reminders?.*have)/i,
+        response: (ctx) => {
+            const now = Date.now();
+            const active = ctx.reminders.filter(r => r.isEnabled && r.time > now).sort((a, b) => a.time - b.time);
+
+            if (active.length === 0) return "No pending alerts in the queue.";
+
+            const list = active.map(r => {
+                const d = new Date(r.time);
+                return `\n- ${r.title} (${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`;
+            }).join('');
+
+            return `Active Protocols (${active.length}):${list}`;
         }
     },
 

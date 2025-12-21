@@ -8,6 +8,7 @@ import { HexSkillGraph } from '../components/HexSkillGraph';
 import { EditSkillsModal } from '../components/EditSkillsModal';
 import { Edit2 } from 'lucide-react';
 import { DailyHabitWidget } from '../components/DailyHabitWidget';
+import { ReminderWidget } from '../components/ReminderWidget';
 
 const iconMap: Record<string, any> = {
     Target,
@@ -84,6 +85,11 @@ export const Dashboard: React.FC = () => {
                 {/* Daily Habit Widget */}
                 <div className="col-span-1 p-6 rounded-3xl bg-tech-surface border border-tech-border flex flex-col justify-center h-48 overflow-hidden">
                     <DailyHabitWidget />
+                </div>
+
+                {/* Reminder Widget */}
+                <div className="col-span-1 p-0 rounded-3xl bg-transparent flex flex-col justify-center h-48 overflow-hidden relative z-10">
+                    <ReminderWidget />
                 </div>
 
                 {/* Stats Widget (Mission + Level) */}

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Task, Tracker, UserStats, INITIAL_STATS, TaskStatus, SkillStats, Habit, HabitLog } from '../types';
+import { Task, Tracker, UserStats, INITIAL_STATS, TaskStatus, SkillStats, Habit, HabitLog, Reminder } from '../types';
 import { useToast } from './ToastContext';
 import { account, databases, DATABASE_ID, COLLECTIONS, storage, BUCKET_ID } from '../lib/appwrite';
 import { ID, Query } from 'appwrite';
@@ -11,7 +11,12 @@ interface GameContextType {
     trackers: Tracker[];
     userStats: UserStats;
     habits: Habit[];
+
     habitLogs: HabitLog[];
+    reminders: Reminder[];
+    addReminder: (reminder: Omit<Reminder, 'id'>) => void;
+    updateReminder: (id: string, updates: Partial<Reminder>) => void;
+    deleteReminder: (id: string) => void;
     addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
     updateTaskStatus: (taskId: string, status: TaskStatus) => void;
     updateTask: (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void;
@@ -130,6 +135,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [trackers, setTrackers] = useState<Tracker[]>([]);
     const [habits, setHabits] = useState<Habit[]>([]);
     const [habitLogs, setHabitLogs] = useState<HabitLog[]>([]);
+    const [reminders, setReminders] = useState<Reminder[]>([]);
     const [userStats, setUserStats] = useState<UserStats>(safeParse('gtt_stats', JSON.parse(JSON.stringify(INITIAL_STATS))));
     const [currentTheme, setCurrentTheme] = useState<string>('default');
 
@@ -180,6 +186,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ]));
         setHabits(safeParse('gtt_habits', []));
         setHabitLogs(safeParse('gtt_habit_logs', []));
+        setReminders(safeParse('gtt_reminders', []));
         setUserStats(safeParse('gtt_stats', JSON.parse(JSON.stringify(INITIAL_STATS))));
     };
 
@@ -208,6 +215,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 Query.equal('userId', userId)
             ]);
             setHabits(habitsRes.documents.map(doc => ({ ...doc, id: doc.$id } as any)));
+
+            // Load Reminders
+            const remindersRes = await databases.listDocuments(DATABASE_ID, COLLECTIONS.REMINDERS, [
+                Query.equal('userId', userId)
+            ]);
+            setReminders(remindersRes.documents.map(doc => ({ ...doc, id: doc.$id } as any)));
 
             // Load Habit Logs
             // Note: In a real app we might only load logs for the current month/view to save bandwidth
@@ -249,6 +262,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.setItem('gtt_trackers', JSON.stringify(trackers));
             localStorage.setItem('gtt_habits', JSON.stringify(habits));
             localStorage.setItem('gtt_habit_logs', JSON.stringify(habitLogs));
+            localStorage.setItem('gtt_reminders', JSON.stringify(reminders));
             localStorage.setItem('gtt_stats', JSON.stringify(userStats));
         }
     }, [tasks, trackers, habits, habitLogs, userStats, loading]);
@@ -798,13 +812,86 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (user) {
             try {
+                // @ts-ignore
                 await databases.updateDocument(DATABASE_ID, COLLECTIONS.USER_STATS, user.$id, {
                     ...newStats,
-                    skills: JSON.stringify(newSkills)
+                    skills: JSON.stringify(newStats.skills)
                 });
             } catch (e: any) {
                 console.error('Failed to update skills in cloud', e);
+            }
+        }
+    };
+
+    // --- Reminders CRUD ---
+    // --- Reminders CRUD ---
+    const addReminder = async (reminderData: Omit<Reminder, 'id'>) => {
+        const newReminder: Reminder = {
+            ...reminderData,
+            id: user ? ID.unique() : crypto.randomUUID(),
+        };
+        setReminders(prev => [...prev, newReminder]);
+        showToast('Alarm scheduled.', { type: 'success' });
+
+        if (user) {
+            try {
+                const { id, ...payload } = newReminder;
+                await databases.createDocument(DATABASE_ID, COLLECTIONS.REMINDERS, newReminder.id, {
+                    ...payload,
+                    userId: user.$id
+                });
+            } catch (e: any) {
+                console.error('Failed to create reminder in cloud', e);
                 showToast(`Sync Failed: ${e.message}`, { type: 'error' });
+            }
+        }
+    };
+
+    const updateReminder = async (id: string, updates: Partial<Reminder>) => {
+        setReminders(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+        showToast('Alarm updated.', { type: 'success' });
+
+        if (user) {
+            try {
+                await databases.updateDocument(DATABASE_ID, COLLECTIONS.REMINDERS, id, updates);
+            } catch (e: any) {
+                // If document not found (404), it means it exists locally but not in cloud (perm issue before)
+                // So we CREATE it now (Upsert)
+                if (e.code === 404) {
+                    const fullReminder = reminders.find(r => r.id === id);
+                    if (fullReminder) {
+                        try {
+                            const { id: rId, ...payload } = fullReminder;
+                            // Merge updates into payload effectively
+                            const finalPayload = { ...payload, ...updates, userId: user.$id };
+
+                            await databases.createDocument(DATABASE_ID, COLLECTIONS.REMINDERS, id, finalPayload);
+                            showToast('Synced to cloud.', { type: 'success' });
+                            return; // Success
+                        } catch (createErr: any) {
+                            console.error('Failed to upsert reminder', createErr);
+                        }
+                    }
+                }
+                console.error('Failed to update reminder in cloud', e);
+                showToast(`Sync Failed: ${e.message}`, { type: 'error' });
+            }
+        }
+    };
+
+    const deleteReminder = async (id: string) => {
+        setReminders(prev => prev.filter(r => r.id !== id));
+        showToast('Alarm dismissed.', { type: 'info' });
+
+        if (user) {
+            try {
+                await databases.deleteDocument(DATABASE_ID, COLLECTIONS.REMINDERS, id);
+            } catch (e: any) {
+                // Ignore 404 on delete - it's already gone
+                if (e.code !== 404) {
+                    console.error('Failed to delete reminder in cloud', e);
+                    showToast(`Sync Failed: ${e.message}`, { type: 'error' });
+                }
             }
         }
     };
@@ -915,6 +1002,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             tasks,
             habits,
             habitLogs,
+            reminders,
+            addReminder,
+            updateReminder,
+            deleteReminder,
             trackers,
             userStats,
             addTask,

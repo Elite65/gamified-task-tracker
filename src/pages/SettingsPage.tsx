@@ -151,6 +151,8 @@ export const SettingsPage: React.FC = () => {
                             </div>
                         </div>
 
+
+
                         {/* Skills */}
                         <div className="space-y-4 p-4 bg-tech-bg/50 rounded-xl border border-tech-border/50">
                             <h3 className="font-mono text-tech-text-secondary text-xs uppercase">Skill Matrix (0-100)</h3>

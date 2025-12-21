@@ -16,15 +16,18 @@ import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { StatsPage } from './pages/StatsPage';
+import { RemindersPage } from './pages/RemindersPage';
 
 import { ThemePreloader } from './components/ThemePreloader';
 import { ChatWidget } from './components/ChatWidget';
+import { AlarmOverlay } from './components/AlarmOverlay';
 
 function App() {
     return (
         <ToastProvider>
             <GameProvider>
                 <ThemePreloader />
+                <AlarmOverlay />
                 <BrowserRouter>
                     <Layout>
                         <Routes>
@@ -40,6 +43,7 @@ function App() {
                             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                             <Route path="/reset-password" element={<ResetPasswordPage />} />
                             <Route path="/tracker/:id" element={<TrackerView />} />
+                            <Route path="/reminders" element={<RemindersPage />} />
                         </Routes>
                         <ChatWidget />
                     </Layout>

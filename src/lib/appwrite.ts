@@ -18,7 +18,8 @@ export const COLLECTIONS = {
     TRACKERS: 'trackers',
     USER_STATS: 'user_stats',
     HABITS: 'habits',
-    HABIT_LOGS: 'habit_logs'
+    HABIT_LOGS: 'habit_logs',
+    REMINDERS: 'reminders'
 };
 
 export const BUCKET_ID = 'user-avatars';
