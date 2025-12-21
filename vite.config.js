@@ -16,7 +16,11 @@ export default defineConfig({
         theme_color: '#1a1a1a',
         background_color: '#1a1a1a',
         display: 'standalone',
+        orientation: 'portrait-primary',
+        scope: '/',
         start_url: '/',
+        categories: ['productivity', 'utilities', 'lifestyle'],
+        iarc_rating_id: 'e84b072d-71b3-4d3e-86ae-31a8ce4e53b7', // Generic IARC for Utility
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -33,6 +37,22 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
+          }
+        ],
+        screenshots: [
+          {
+            src: 'pwa-512x512.png', // Placeholder for now, user needs to add real screenshots
+            sizes: '512x512',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'Dashboard Overview'
+          },
+          {
+            src: 'pwa-192x192.png', // Placeholder
+            sizes: '192x192',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'Mobile Task List'
           }
         ]
       }
