@@ -23,6 +23,17 @@ export const AlarmOverlay: React.FC = () => {
                 setActiveAlarms(triggered);
                 if (triggered.length > 0) {
                     playAlarmSound();
+
+                    // Trigger Native Notification
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        triggered.forEach(alarm => {
+                            new Notification("🚨 ALARM ACTIVE: " + alarm.title, {
+                                body: "Tap to dismiss protocol.",
+                                icon: '/icon-192.png',
+                                tag: alarm.id // Prevent duplicate notifications for same alarm
+                            });
+                        });
+                    }
                 } else {
                     stopAlarmSound();
                 }
@@ -39,7 +50,14 @@ export const AlarmOverlay: React.FC = () => {
             clearInterval(interval);
             stopAlarmSound();
         };
-    }, [reminders]); // We use a ref or careful dependency to avoid resetting interval constantly, but reminders change rarely (edit/add).
+    }, [reminders]);
+
+    // Request Notification Permission on Mount
+    useEffect(() => {
+        if ('Notification' in window && Notification.permission !== 'granted') {
+            Notification.requestPermission();
+        }
+    }, []);
 
     if (activeAlarms.length === 0) return null;
 
