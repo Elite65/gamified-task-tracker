@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { Settings, RefreshCw, Save, AlertTriangle, LogOut, LogIn, Palette } from 'lucide-react';
+import { Settings, RefreshCw, Save, AlertTriangle, LogOut, LogIn, Palette, Download, Smartphone, Laptop } from 'lucide-react';
 import { UserStats } from '../types';
 import { themes } from '../lib/themes';
 
@@ -15,6 +15,27 @@ export const SettingsPage: React.FC = () => {
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [profileName, setProfileName] = useState(user?.name || '');
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+    // PWA Install State
+    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+    useEffect(() => {
+        const handler = (e: any) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handler);
+        return () => window.removeEventListener('beforeinstallprompt', handler);
+    }, []);
+
+    const handleInstallPWA = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            setDeferredPrompt(null);
+        }
+    };
 
     const handleStatChange = (skill: string, value: number) => {
         setEditedStats(prev => ({
@@ -48,7 +69,7 @@ export const SettingsPage: React.FC = () => {
     };
 
     return (
-        <div className="h-full flex flex-col max-w-3xl mx-auto text-tech-text">
+        <div className="h-full flex flex-col max-w-3xl mx-auto text-tech-text pb-24">
             <div className="flex items-center gap-4 mb-8">
                 <div className="p-3 bg-tech-surface rounded-xl border border-tech-border">
                     <Settings className="w-6 h-6 text-tech-primary" />
@@ -60,6 +81,75 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="space-y-6">
+
+                {/* --- 1. DOWNLOAD CENTER (NEW) --- */}
+                <div className="bg-tech-surface border border-tech-border rounded-3xl p-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                        <Download className="w-32 h-32" />
+                    </div>
+
+                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2 relative z-10">
+                        <Download className="w-5 h-5 text-tech-primary" />
+                        Install Application
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
+                        {/* Option 1: Desktop PWA */}
+                        <div className="p-4 bg-tech-bg/50 border border-tech-border rounded-xl flex flex-col gap-3">
+                            <div className="flex items-center gap-2 text-tech-primary font-bold">
+                                <Laptop className="w-5 h-5" />
+                                <span>Desktop / PWA</span>
+                            </div>
+                            <p className="text-xs text-tech-text-secondary">
+                                Install as a standalone app on Windows, Mac, or Linux. Updates instantly.
+                            </p>
+                            <button
+                                onClick={handleInstallPWA}
+                                disabled={!deferredPrompt}
+                                className={`mt-auto w-full py-2 rounded-lg font-bold text-sm transition-all ${deferredPrompt
+                                        ? 'bg-tech-primary text-black hover:bg-tech-primary/80'
+                                        : 'bg-tech-border/20 text-tech-text-secondary border border-tech-border cursor-not-allowed'
+                                    }`}
+                            >
+                                {deferredPrompt ? 'INSTALL APP' : 'INSTALLED / UNSUPPORTED'}
+                            </button>
+                        </div>
+
+                        {/* Option 2: Android APK */}
+                        <div className="p-4 bg-tech-bg/50 border border-tech-border rounded-xl flex flex-col gap-3">
+                            <div className="flex items-center gap-2 text-green-400 font-bold">
+                                <Smartphone className="w-5 h-5" />
+                                <span>Android</span>
+                            </div>
+                            <p className="text-xs text-tech-text-secondary">
+                                Download the Native APK Wrapper. Supports home screen installation.
+                            </p>
+                            <a
+                                href="#" // Placeholder for user input later
+                                onClick={(e) => { e.preventDefault(); alert("Please generate the APK using PWABuilder and add the link here!"); }}
+                                className="mt-auto w-full py-2 bg-green-500/10 border border-green-500/50 text-green-400 hover:bg-green-500/20 rounded-lg font-bold text-sm text-center transition-all"
+                            >
+                                DOWNLOAD APK
+                            </a>
+                        </div>
+
+                        {/* Option 3: iOS */}
+                        <div className="p-4 bg-tech-bg/50 border border-tech-border rounded-xl flex flex-col gap-3">
+                            <div className="flex items-center gap-2 text-gray-300 font-bold">
+                                <span className="text-xl"></span>
+                                <span>iOS / Apple</span>
+                            </div>
+                            <p className="text-xs text-tech-text-secondary">
+                                Apple does not support direct downloads. Use the browser features.
+                            </p>
+                            <div className="mt-auto p-2 bg-tech-surface-hover rounded text-xs text-center border border-tech-border/50">
+                                Tap <span className="font-bold">Share</span> <br />
+                                then <span className="font-bold">"Add to Home Screen"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Appearance Section */}
                 <div className="bg-tech-surface border border-tech-border rounded-3xl p-8">
                     <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
