@@ -183,7 +183,7 @@ export const SettingsPage: React.FC = () => {
                                             return;
                                         }
 
-                                        alert("Debug: Initial State = " + Notification.permission);
+                                        alert("Debug: Initial State = " + Notification.permission + "\nSW Controller: " + (navigator.serviceWorker.controller ? "Active" : "NULL"));
 
                                         Notification.requestPermission().then(perm => {
                                             alert("Debug: User Choice Result = " + perm);
