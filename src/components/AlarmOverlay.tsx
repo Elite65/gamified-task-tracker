@@ -59,12 +59,8 @@ export const AlarmOverlay: React.FC = () => {
         };
     }, [reminders]);
 
-    // Request Notification Permission on Mount
-    useEffect(() => {
-        if ('Notification' in window && Notification.permission !== 'granted') {
-            Notification.requestPermission();
-        }
-    }, []);
+    // Removed auto-request on mount to prevents "gatekeeping msg" loop.
+    // Permissions should be requested via Settings or explicit user action.
 
     if (activeAlarms.length === 0) return null;
 

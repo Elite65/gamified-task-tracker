@@ -183,24 +183,26 @@ export const SettingsPage: React.FC = () => {
                                             return;
                                         }
 
-                                        alert("Debug: Current State = " + Notification.permission);
+                                        alert("Debug: Initial State = " + Notification.permission);
 
                                         Notification.requestPermission().then(perm => {
+                                            alert("Debug: User Choice Result = " + perm);
+
                                             if (perm === 'granted') {
                                                 navigator.serviceWorker.ready.then(reg => {
                                                     try {
                                                         reg.showNotification("🚨 Test Notification", {
-                                                            body: "If you see this, the system is working!",
+                                                            body: "System verified.",
                                                             icon: '/icon-192.png',
                                                             vibrate: [200, 100, 200]
                                                         } as any);
-                                                        alert("Sent! Check status bar.");
+                                                        alert("Sent to Service Worker!");
                                                     } catch (e: any) {
                                                         alert("Error showing: " + e.message);
                                                     }
                                                 }).catch(e => alert("SW Error: " + e.message));
                                             } else {
-                                                alert("Denied/Ignored. State: " + perm + ". Go to Android Settings > Apps > Elite65 > Allow Notifications.");
+                                                alert("Permission NOT granted. Result: " + perm);
                                             }
                                         });
                                     }}
