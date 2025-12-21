@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['apple-touch-icon.png', 'maskable-icon-512.png', 'vite.svg'],
+      includeAssets: ['apple-touch-icon.png', 'maskable-icon-512.png', 'vite.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png'],
       manifest: {
         name: 'Elite65 Task Tracker',
         short_name: 'Elite65',
@@ -29,43 +29,43 @@ export default defineConfig({
             short_name: 'Tasks',
             description: 'View your pending missions',
             url: '/tasks',
-            icons: [{ src: 'icon-192.png', sizes: '192x192' }]
+            icons: [{ src: '/icon-192.png', sizes: '192x192' }]
           },
           {
             name: 'Habit Protocols',
             short_name: 'Habits',
             description: 'Track your daily protocols',
             url: '/habits',
-            icons: [{ src: 'icon-192.png', sizes: '192x192' }]
+            icons: [{ src: '/icon-192.png', sizes: '192x192' }]
           },
           {
             name: 'Stats & Rank',
             short_name: 'Stats',
             description: 'Check your progress and rank',
             url: '/stats',
-            icons: [{ src: 'icon-192.png', sizes: '192x192' }]
+            icons: [{ src: '/icon-192.png', sizes: '192x192' }]
           }
         ],
         icons: [
           {
-            src: 'icon-192.png',
+            src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'icon-512.png',
+            src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'icon-maskable-192.png',
+            src: '/icon-maskable-192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'maskable'
           },
           {
-            src: 'icon-maskable-512.png',
+            src: '/icon-maskable-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
