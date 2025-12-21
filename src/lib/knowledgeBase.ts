@@ -69,6 +69,15 @@ export const processQuery = (query: string, context?: GameContext, lastTopic?: s
             // Context Switch: Tasks -> Habits
             // Let standard matching handle "habits"
         }
+
+        // Contextual "How to make them/it"
+        if (/(how|way).*(make|create|add).*(them|it)/i.test(lowerQuery)) {
+            if (lastTopic === 'HABITS') {
+                return { text: "To create a Habit Protocol: Navigate to the Habits module and click 'Add Habit'. Set your daily goal and frequency." };
+            } else if (lastTopic === 'TASKS') {
+                return { text: "To create a Mission: Click the '+' button in the sidebar or 'New Mission' on the Dashboard." };
+            }
+        }
     }
 
     // 2. Standard Rule Matching
@@ -279,6 +288,29 @@ export const KNOWLEDGE_BASE: KnowledgeRule[] = [
         response: () => "The Hexagon Skill Graph visualizes your attribute balance. \n- Vertices represent different skill categories.\n- The area expands as you complete tasks tagged with those skills.\n- A balanced shape indicates a well-rounded skillset."
     },
     {
+        regex: /(what.*(course|tracker)|define.*(course|tracker))/i,
+        response: () => "Courses (or Trackers) are the high-level categories that group your tasks. For example, 'Daily Life', 'Career', or 'Fitness'. You can assign missions to specific Trackers to organize your workflow."
+    },
+    {
+        regex: /(how|way).*(create|make|add).*(habit)/i,
+        setTopic: 'HABITS',
+        response: () => "To create a Habit Protocol: \n1. Navigate to the 'Habits' module (or Dashboard).\n2. Click 'Add Habit'.\n3. Define the title, daily goal (e.g. 10 pages), and unit."
+    },
+    {
+        regex: /(what.*formula|math.*behind)/i,
+        response: (ctx, match) => "Data Logic: \n- **XP Gain**: Easy(10), Med(25), Hard(50), Epic(75). \n- **Skill Level**: 100 XP in a skill = +1 Skill Level.\n- **User Level**: Threshold grows by x1.5 each level (Geometric Progression)."
+    },
+    // Skill Definitions & Comparisons (Fallback Explanation)
+    {
+        regex: /(?:what.*(?:mean|definition|is)|diff.*(?:between|from))\s+(.+)/i,
+        response: (ctx, match) => {
+            const term = match ? match[1].toLowerCase() : '';
+            // Check if term looks like a skill (optional specific check, or just generic rejection)
+            // We'll use a generic "Tactical" response
+            return `Definitions for terms like '${term}' are not hardcoded. Attributes like 'Intelligence' or 'Endurance' are simply **Fallback Skills** (defaults). \n\nYou can customize or rename these in **Settings** to match your actual goals. I track the skills YOU define.`;
+        }
+    },
+    {
         regex: /(theme|look|design|color|style|appearance)/i,
         response: () => "Elite65 supports multiple visual themes. You can switch them in Settings:\n1. 'Eclipse Skies' (Deep Blue/Purple)\n2. 'Cold Nights' (Dark Cyan/Slate)\n3. 'Frigid Winter' (Cozy Anime Lofi style)\n4. 'Spring Shower' (Soft Pink/Blue Sunrise)."
     },
@@ -397,7 +429,7 @@ export const KNOWLEDGE_BASE: KnowledgeRule[] = [
         regex: /(habit)/i,
         setTopic: 'HABITS', // General habit topic
         response: (ctx) => {
-            return "Habit Protocols are recurring objectives. Tracking them daily builds your streak multiplier.";
+            return "Habit Protocols are recurring objectives. \n- **Streak Logic**: You must log data **DAILY** (no gaps > 1 day) to maintain streaks.\n- **Completion**: Only meeting the Goal Amount (e.g. 10 pages) counts as a valid day.";
         }
     },
 
@@ -814,7 +846,7 @@ export const KNOWLEDGE_BASE: KnowledgeRule[] = [
     // --- MECHANICS: STAT CALCULATION / AUTOMATION ---
     {
         regex: /(how|way|formula).*(calculate|work|update|change)|(auto|manual).*(stats|xp)/i,
-        response: () => "All attributes and XP are calculated AUTOMATICALLY. \n1. Completing Tasks grants XP based on difficulty.\n2. Tagging tasks with skills (e.g. 'Coding') automatically improves that specific attribute.\n3. You do not need to manually edit stats unless you are debugging."
+        response: () => "Calculation Protocol: \n1. **XP**: Gained by Tasks (10/25/50/75 XP) and Habits (10 XP). \n2. **Skills**: Tagging a task with a skill (e.g. 'Coding') adds that task's XP to the skill's progress. \n3. **Level Up**: Occurs automatically when thresholds are met."
     },
 
     // --- NAVIGATION HELP ---
