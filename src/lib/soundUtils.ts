@@ -14,10 +14,24 @@ const initAudio = () => {
     return audioCtx;
 };
 
+let activeOsc: OscillatorNode | null = null;
+let activeGain: GainNode | null = null;
+
 // Play a single pulses (approx 2s)
 const playPulse = (ctx: AudioContext) => {
+    // Cleanup previous if overlap (though interval should prevent this)
+    if (activeOsc) {
+        try { activeOsc.stop(); activeOsc.disconnect(); } catch (e) { }
+    }
+    if (activeGain) {
+        try { activeGain.disconnect(); } catch (e) { }
+    }
+
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+
+    activeOsc = osc;
+    activeGain = gain;
 
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -40,6 +54,14 @@ const playPulse = (ctx: AudioContext) => {
 
     osc.start(now);
     osc.stop(now + 1.5);
+
+    // Auto-cleanup refs after stop time to prevent memory leaks/stale refs
+    osc.onended = () => {
+        if (activeOsc === osc) {
+            activeOsc = null;
+            activeGain = null;
+        }
+    };
 };
 
 export const playAlarmSound = () => {
@@ -65,6 +87,22 @@ export const stopAlarmSound = () => {
         clearInterval(intervalId);
         intervalId = null;
     }
-    // Note: We don't stop the exact currently playing oscillator node because 
-    // it's short-lived, but we stop the loop so no new ones start.
+
+    // Immediate silence
+    if (activeOsc) {
+        try {
+            activeOsc.stop();
+            activeOsc.disconnect();
+        } catch (e) {
+            // Ignore errors if already stopped
+        }
+        activeOsc = null;
+    }
+    if (activeGain) {
+        try {
+            activeGain.disconnect();
+            // Ramp down effectively silences, but disconnect is surer
+        } catch (e) { }
+        activeGain = null;
+    }
 };
