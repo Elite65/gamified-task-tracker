@@ -436,11 +436,11 @@ export const KNOWLEDGE_BASE: KnowledgeRule[] = [
 
     // --- DYNAMIC: REMINDERS ---
     {
-        regex: /(what.*reminders?|define.*reminders?)/i,
+        regex: /(what.*(reminders?|tactical.*alerts?)|define.*(reminders?|tactical.*alerts?))/i,
         response: () => "Tactical Alerts (Reminders) are time-sensitive protocols. Unlike tasks, they trigger an active alarm system to ensure immediate attention for critical events."
     },
     {
-        regex: /(next.*reminder|upcoming.*reminder|when.*next.*alarm)/i,
+        regex: /(next.*(reminder|alert|alarm)|upcoming.*(reminder|alert)|when.*next.*(alarm|alert))/i,
         response: (ctx) => {
             const now = Date.now();
             const upcoming = ctx.reminders
@@ -455,7 +455,7 @@ export const KNOWLEDGE_BASE: KnowledgeRule[] = [
         }
     },
     {
-        regex: /(list.*reminders?|remaining.*reminders?|all.*reminders?|what.*reminders?.*have)/i,
+        regex: /(list.*(reminders?|alerts?)|remaining.*(reminders?|alerts?)|all.*(reminders?|alerts?)|what.*(reminders?|alerts?).*have)/i,
         response: (ctx) => {
             const now = Date.now();
             const active = ctx.reminders.filter(r => r.isEnabled && r.time > now).sort((a, b) => a.time - b.time);
