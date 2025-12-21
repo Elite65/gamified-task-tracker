@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { Settings, RefreshCw, Save, AlertTriangle, LogOut, LogIn, Palette, Download, Smartphone, Laptop } from 'lucide-react';
+import { Settings, RefreshCw, Save, AlertTriangle, LogOut, LogIn, Palette, Download, Smartphone, Laptop, ChevronDown, ChevronUp } from 'lucide-react';
 import { UserStats } from '../types';
 import { themes } from '../lib/themes';
 
@@ -18,6 +18,7 @@ export const SettingsPage: React.FC = () => {
 
     // PWA Install State
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const [isDownloadExpanded, setIsDownloadExpanded] = useState(false);
 
     useEffect(() => {
         const handler = (e: any) => {
@@ -82,74 +83,98 @@ export const SettingsPage: React.FC = () => {
 
             <div className="space-y-6">
 
-                {/* --- 1. DOWNLOAD CENTER (NEW) --- */}
-                <div className="bg-tech-surface border border-tech-border rounded-3xl p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                        <Download className="w-32 h-32" />
-                    </div>
-
-                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2 relative z-10">
-                        <Download className="w-5 h-5 text-tech-primary" />
-                        Install Application
-                    </h2>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
-                        {/* Option 1: Desktop PWA */}
-                        <div className="p-4 bg-tech-bg/50 border border-tech-border rounded-xl flex flex-col gap-3">
-                            <div className="flex items-center gap-2 text-tech-primary font-bold">
-                                <Laptop className="w-5 h-5" />
-                                <span>Desktop / PWA</span>
+                {/* --- 1. DOWNLOAD CENTER (NEW - Collapsible) --- */}
+                <div className="bg-tech-surface border border-tech-border rounded-3xl overflow-hidden transition-all duration-300">
+                    <button
+                        onClick={() => setIsDownloadExpanded(!isDownloadExpanded)}
+                        className="w-full p-8 flex items-center justify-between hover:bg-tech-surface-hover/50 transition-colors text-left"
+                    >
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className="p-3 bg-tech-bg rounded-xl border border-tech-border">
+                                <Download className="w-6 h-6 text-tech-primary" />
                             </div>
-                            <p className="text-xs text-tech-text-secondary">
-                                Install as a standalone app on Windows, Mac, or Linux. Updates instantly.
-                            </p>
-                            <button
-                                onClick={handleInstallPWA}
-                                disabled={!deferredPrompt}
-                                className={`mt-auto w-full py-2 rounded-lg font-bold text-sm transition-all ${deferredPrompt
-                                    ? 'bg-tech-primary text-black hover:bg-tech-primary/80'
-                                    : 'bg-tech-border/20 text-tech-text-secondary border border-tech-border cursor-not-allowed'
-                                    }`}
-                            >
-                                {deferredPrompt ? 'INSTALL APP' : 'INSTALLED / UNSUPPORTED'}
-                            </button>
-                        </div>
-
-                        {/* Option 2: Android APK */}
-                        <div className="p-4 bg-tech-bg/50 border border-tech-border rounded-xl flex flex-col gap-3">
-                            <div className="flex items-center gap-2 text-green-400 font-bold">
-                                <Smartphone className="w-5 h-5" />
-                                <span>Android</span>
-                            </div>
-                            <p className="text-xs text-tech-text-secondary">
-                                Download the Native APK Wrapper. Supports home screen installation.
-                            </p>
-                            <a
-                                href="https://github.com/Elite65/gamified-task-tracker/releases/download/v1.0.0/Elite65.apk"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mt-auto w-full py-2 bg-green-500/10 border border-green-500/50 text-green-400 hover:bg-green-500/20 rounded-lg font-bold text-sm text-center transition-all flex items-center justify-center gap-2"
-                            >
-                                <Download className="w-4 h-4" />
-                                DOWNLOAD APK (v1.0)
-                            </a>
-                        </div>
-
-                        {/* Option 3: iOS */}
-                        <div className="p-4 bg-tech-bg/50 border border-tech-border rounded-xl flex flex-col gap-3">
-                            <div className="flex items-center gap-2 text-gray-300 font-bold">
-                                <span className="text-xl"></span>
-                                <span>iOS / Apple</span>
-                            </div>
-                            <p className="text-xs text-tech-text-secondary">
-                                Apple does not support direct downloads. Use the browser features.
-                            </p>
-                            <div className="mt-auto p-2 bg-tech-surface-hover rounded text-xs text-center border border-tech-border/50">
-                                Tap <span className="font-bold">Share</span> <br />
-                                then <span className="font-bold">"Add to Home Screen"</span>
+                            <div>
+                                <h2 className="text-xl font-bold flex items-center gap-2">
+                                    Install Application
+                                </h2>
+                                <p className="text-sm text-tech-text-secondary">
+                                    Get the native experience for Android & Desktop
+                                </p>
                             </div>
                         </div>
-                    </div>
+                        {isDownloadExpanded ? (
+                            <ChevronUp className="w-6 h-6 text-tech-text-secondary" />
+                        ) : (
+                            <ChevronDown className="w-6 h-6 text-tech-text-secondary" />
+                        )}
+
+                        {/* Background Decorator */}
+                        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                            <Download className="w-32 h-32" />
+                        </div>
+                    </button>
+
+                    {isDownloadExpanded && (
+                        <div className="p-8 pt-0 animate-in slide-in-from-top-4 fade-in duration-200">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
+                                {/* Option 1: Desktop PWA */}
+                                <div className="p-4 bg-tech-bg/50 border border-tech-border rounded-xl flex flex-col gap-3">
+                                    <div className="flex items-center gap-2 text-tech-primary font-bold">
+                                        <Laptop className="w-5 h-5" />
+                                        <span>Desktop / PWA</span>
+                                    </div>
+                                    <p className="text-xs text-tech-text-secondary">
+                                        Install as a standalone app on Windows, Mac, or Linux. Updates instantly.
+                                    </p>
+                                    <button
+                                        onClick={handleInstallPWA}
+                                        disabled={!deferredPrompt}
+                                        className={`mt-auto w-full py-2 rounded-lg font-bold text-sm transition-all ${deferredPrompt
+                                            ? 'bg-tech-primary text-black hover:bg-tech-primary/80'
+                                            : 'bg-tech-border/20 text-tech-text-secondary border border-tech-border cursor-not-allowed'
+                                            }`}
+                                    >
+                                        {deferredPrompt ? 'INSTALL APP' : 'INSTALLED / UNSUPPORTED'}
+                                    </button>
+                                </div>
+
+                                {/* Option 2: Android APK */}
+                                <div className="p-4 bg-tech-bg/50 border border-tech-border rounded-xl flex flex-col gap-3">
+                                    <div className="flex items-center gap-2 text-green-400 font-bold">
+                                        <Smartphone className="w-5 h-5" />
+                                        <span>Android</span>
+                                    </div>
+                                    <p className="text-xs text-tech-text-secondary">
+                                        Download the Native APK Wrapper. Supports home screen installation.
+                                    </p>
+                                    <a
+                                        href="https://github.com/Elite65/gamified-task-tracker/releases/download/v1.0.0/Elite65.apk"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="mt-auto w-full py-2 bg-green-500/10 border border-green-500/50 text-green-400 hover:bg-green-500/20 rounded-lg font-bold text-sm text-center transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        DOWNLOAD APK (v1.0)
+                                    </a>
+                                </div>
+
+                                {/* Option 3: iOS */}
+                                <div className="p-4 bg-tech-bg/50 border border-tech-border rounded-xl flex flex-col gap-3">
+                                    <div className="flex items-center gap-2 text-gray-300 font-bold">
+                                        <span className="text-xl"></span>
+                                        <span>iOS / Apple</span>
+                                    </div>
+                                    <p className="text-xs text-tech-text-secondary">
+                                        Apple does not support direct downloads. Use the browser features.
+                                    </p>
+                                    <div className="mt-auto p-2 bg-tech-surface-hover rounded text-xs text-center border border-tech-border/50">
+                                        Tap <span className="font-bold">Share</span> <br />
+                                        then <span className="font-bold">"Add to Home Screen"</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Appearance Section */}

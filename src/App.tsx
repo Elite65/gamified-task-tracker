@@ -11,8 +11,9 @@ import { HabitsPage } from './pages/HabitsPage';
 import { CoursesPage } from './pages/CoursesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
-import { SignupPage } from './pages/SignupPage';
+import { AppAnnouncement } from './components/AppAnnouncement';
 
+import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { StatsPage } from './pages/StatsPage';
@@ -66,6 +67,7 @@ function App() {
                             <Route path="/reminders" element={<RemindersPage />} />
                         </Routes>
                         <ChatWidget />
+                        <AppAnnouncement />
                     </Layout>
                 </BrowserRouter>
             </GameProvider>
