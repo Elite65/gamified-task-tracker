@@ -21,6 +21,7 @@ import { RemindersPage } from './pages/RemindersPage';
 import { ThemePreloader } from './components/ThemePreloader';
 import { ChatWidget } from './components/ChatWidget';
 import { AlarmOverlay } from './components/AlarmOverlay';
+import { ReloadPrompt } from './components/ReloadPrompt';
 import { initAudio } from './lib/soundUtils';
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
     return (
         <ToastProvider>
             <GameProvider>
+                <ReloadPrompt />
                 <ThemePreloader />
                 <AlarmOverlay />
                 <BrowserRouter>
