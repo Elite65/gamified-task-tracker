@@ -225,7 +225,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </main>
 
             {/* Bottom Navigation (Mobile) */}
-            <nav className="md:hidden fixed bottom-6 left-4 right-4 bg-tech-surface/95 backdrop-blur-xl border border-tech-border rounded-2xl px-2 py-2 flex justify-between items-end z-[90] shadow-2xl safe-area-bottom">
+            <nav className="md:hidden fixed bottom-6 left-4 right-4 bg-tech-surface/95 backdrop-blur-xl border border-tech-border rounded-2xl px-2 py-2 flex justify-between items-end z-[9999] shadow-2xl safe-area-bottom">
 
                 {/* 1. Dashboard */}
                 <Link
@@ -249,16 +249,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     {location.pathname === '/calendar' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
                 </Link>
 
-                {/* 2. Calendar */}
-                <Link
-                    to="/calendar"
-                    className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/calendar' ? 'text-tech-primary' : 'text-gray-500'}`}
-                >
-                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/calendar' ? 'bg-tech-primary/10' : ''}`}>
-                        <Calendar className="w-6 h-6" strokeWidth={location.pathname === '/calendar' ? 2.5 : 2} />
-                    </div>
-                    {location.pathname === '/calendar' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
-                </Link>
+
 
                 {/* 3. Tasks */}
                 <Link
