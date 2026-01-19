@@ -235,7 +235,30 @@ const parseTaskUpdates = (text: string): any => {
 
 // Update KNOWLEDGE_BASE with Topics
 export const KNOWLEDGE_BASE: KnowledgeRule[] = [
-    // --- SYSTEM STATUS: PROJECT MUTED (DEFINITION) ---
+    // --- NEW MECHANICS: RECURRENCE & EVENTS ---
+    {
+        regex: /(what.*(schedule|event|meeting)|diff.*(mission|task).*schedule)/i,
+        response: () => "The **Schedule** is for time-bound events (Meetings, Birthdays) that don't depend on your effort level. \n- **Missions**: Gamified tasks (Have Difficulty, give XP).\n- **Schedule**: Non-gamified events (No Difficulty, purely for planning)."
+    },
+    {
+        regex: /(recurring|repeating|repeat|every day|weekly|yearly)/i,
+        response: () => "You can make any Schedule Item recurring. \n1. Create a Schedule Item.\n2. Toggle **'Repeating Item'**.\n3. Choose Daily, Weekly, Yearly, or Custom Days."
+    },
+
+    // --- NEW MECHANICS: GAMIFICATION ---
+    {
+        regex: /(flux zone|power up|multiplier|2x)/i,
+        response: () => "A **Flux Zone** is a high-energy time window (detected from your Chronotype). \n- Completing missions during a Flux Zone grants **2x XP**. \n- Look for the lightning bolt icon on your calendar."
+    },
+    {
+        regex: /(threat|level|difficulty|rating|class)/i,
+        response: () => "**Threat Assessment** determines the XP reward: \n- **Class-C (Easy)**: 10 XP \n- **Class-B (Medium)**: 25 XP \n- **Class-A (Hard)**: 50 XP \n- **Class-S (Epic)**: 100 XP (Requires 100% Focus)"
+    },
+    {
+        regex: /(lock|initialized|frozen|unlock)/i,
+        response: () => "**Protocol Lock-In**: Once you initialize a day (click 'Initialize Day'), the schedule is locked. \n- You gain **+10% XP** for the day. \n- Deleting items after lock-in incurs a penalty. \n- This simulates 'deployment' to a mission area."
+    },
+
     {
         regex: /(what.*project muted|define project muted|about project muted|why.*project muted)/i,
         response: () => "Information Access Denied: Creator Id not found."

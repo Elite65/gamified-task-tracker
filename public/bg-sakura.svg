@@ -1,0 +1,29 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 5-Petal Sakura Flower -->
+    <g id="sakura">
+      <ellipse cx="0" cy="-5" rx="3" ry="8" fill="#F472B6" opacity="0.4" transform="rotate(0)" />
+      <ellipse cx="0" cy="-5" rx="3" ry="8" fill="#F472B6" opacity="0.4" transform="rotate(72)" />
+      <ellipse cx="0" cy="-5" rx="3" ry="8" fill="#F472B6" opacity="0.4" transform="rotate(144)" />
+      <ellipse cx="0" cy="-5" rx="3" ry="8" fill="#F472B6" opacity="0.4" transform="rotate(216)" />
+      <ellipse cx="0" cy="-5" rx="3" ry="8" fill="#F472B6" opacity="0.4" transform="rotate(288)" />
+      <circle cx="0" cy="0" r="2" fill="#FDF2F8" opacity="0.8" />
+    </g>
+
+    <!-- Single Drifting Petal -->
+    <path id="petal" d="M0,0 Q5,-5 10,0 Q5,5 0,0" fill="#FBCFE8" opacity="0.6" />
+  </defs>
+
+  <!-- Scattered Pattern -->
+  <use href="#sakura" x="30" y="30" transform="scale(0.8) rotate(15)" />
+  <use href="#petal" x="70" y="60" transform="scale(1.2) rotate(45)" />
+  <use href="#sakura" x="120" y="20" transform="scale(0.6) rotate(-10)" />
+  <use href="#petal" x="160" y="40" transform="scale(0.8) rotate(90)" />
+  <use href="#sakura" x="180" y="90" transform="scale(0.9) rotate(30)" />
+
+  <use href="#petal" x="20" y="130" transform="scale(1.0) rotate(120)" />
+  <use href="#sakura" x="60" y="170" transform="scale(1.1) rotate(-20)" />
+  <use href="#petal" x="100" y="120" transform="scale(0.9) rotate(60)" />
+  <use href="#sakura" x="150" y="150" transform="scale(0.7) rotate(40)" />
+  <use href="#petal" x="190" y="180" transform="scale(1.1) rotate(-45)" />
+</svg>

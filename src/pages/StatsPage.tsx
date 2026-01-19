@@ -67,32 +67,33 @@ export const StatsPage: React.FC = () => {
     const chartOpacity = isLightTheme ? 0.5 : 0.2; // More transparent to prevent occlusion
     const strokeWidth = isLightTheme ? 3 : 2;
 
-    // --- Data Prep ---
+    // --- Data Prep (Filtered for Missions Only - Exclude Schedule/Events) ---
+    const missionsOnly = useMemo(() => tasks.filter(t => !t.isEvent), [tasks]);
 
     // 1. Task Status (Donut)
     // Memoized to prevent unnecessary re-calcs, but Status doesn't animate so it's fine.
     const statusData = useMemo(() => [
-        { name: 'To Do', value: tasks.filter(t => t.status === 'YET_TO_START').length, color: textSecondary },
-        { name: 'Started', value: tasks.filter(t => t.status === 'STARTED').length, color: secondary },
-        { name: 'In Progress', value: tasks.filter(t => t.status === 'IN_PROGRESS').length, color: primary },
-        { name: 'Completed', value: tasks.filter(t => t.status === 'COMPLETED').length, color: '#4ade80' },
-    ].filter(d => d.value > 0), [tasks, textSecondary, secondary, primary]);
+        { name: 'To Do', value: missionsOnly.filter(t => t.status === 'YET_TO_START').length, color: textSecondary },
+        { name: 'Started', value: missionsOnly.filter(t => t.status === 'STARTED').length, color: secondary },
+        { name: 'In Progress', value: missionsOnly.filter(t => t.status === 'IN_PROGRESS').length, color: primary },
+        { name: 'Completed', value: missionsOnly.filter(t => t.status === 'COMPLETED').length, color: '#4ade80' },
+    ].filter(d => d.value > 0), [missionsOnly, textSecondary, secondary, primary]);
 
     // 2. Difficulty (Bar)
     const difficultyOrder = { 'EASY': 1, 'MEDIUM': 2, 'HARD': 3, 'EPIC': 4 };
     const difficultyData = useMemo(() => Object.entries(
-        tasks.reduce((acc, task) => {
+        missionsOnly.reduce((acc, task) => {
             acc[task.difficulty] = (acc[task.difficulty] || 0) + 1;
             return acc;
         }, {} as Record<string, number>)
     )
         .sort(([a], [b]) => difficultyOrder[a as keyof typeof difficultyOrder] - difficultyOrder[b as keyof typeof difficultyOrder])
-        .map(([name, value]) => ({ name, value })), [tasks]);
+        .map(([name, value]) => ({ name, value })), [missionsOnly]);
 
     // 3. Skill/Tag Frequency (Training Focus)
     const skillData = useMemo(() => {
         const counts: Record<string, number> = {};
-        tasks.forEach(t => {
+        missionsOnly.forEach(t => {
             if (t.skills) {
                 t.skills.forEach(s => {
                     counts[s] = (counts[s] || 0) + 1;
@@ -103,13 +104,13 @@ export const StatsPage: React.FC = () => {
             .map(([name, value]) => ({ name, value }))
             .sort((a, b) => b.value - a.value)
             .slice(0, 10); // Top 10
-    }, [tasks]);
+    }, [missionsOnly]);
 
     // 4. Chronotype (Time of Day)
     const chronotypeData = useMemo(() => {
         const buckets = { 'Morning': 0, 'Afternoon': 0, 'Evening': 0, 'Night': 0 };
 
-        tasks.forEach(t => {
+        missionsOnly.forEach(t => {
             if (t.status === 'COMPLETED') {
                 const ts = (t as any).$updatedAt || (t as any).$createdAt || t.createdAt;
                 const date = new Date(ts);
@@ -123,7 +124,7 @@ export const StatsPage: React.FC = () => {
         });
 
         return Object.entries(buckets).map(([name, value]) => ({ name, value }));
-    }, [tasks]);
+    }, [missionsOnly]);
 
     // 5. XP / Activity Trend (Wave) - STRICT REAL DATA
     const evolutionData = useMemo(() => {
@@ -142,7 +143,7 @@ export const StatsPage: React.FC = () => {
             let dailyTaskXP = 0;
             const xpValues = { 'EASY': 10, 'MEDIUM': 25, 'HARD': 50, 'EPIC': 100 };
 
-            tasks.forEach(t => {
+            missionsOnly.forEach(t => {
                 if (t.status === 'COMPLETED') {
                     // Check if $updatedAt matches this date. Appwrite ISO string: "2023-12-18T..."
                     // Cast to any because $updatedAt comes from DB but isn't on strict Task type
@@ -159,7 +160,7 @@ export const StatsPage: React.FC = () => {
                 habits: dailyHabitScore,
             };
         });
-    }, [userStats.xp, habitLogs, tasks]);
+    }, [userStats.xp, habitLogs, missionsOnly]);
 
     // Helper: Calculate Streak based on logs
     // Helper: Calculate Streak based on logs

@@ -4,6 +4,14 @@ export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD' | 'EPIC';
 
 export type EisenhowerQuadrant = 'q1-do' | 'q2-plan' | 'q3-delegate' | 'q4-eliminate';
 
+export type RecurrenceFrequency = 'NONE' | 'DAILY' | 'WEEKLY' | 'YEARLY' | 'CUSTOM';
+
+export interface RecurrenceConfig {
+    frequency: RecurrenceFrequency;
+    daysOfWeek?: number[]; // 0=Sun, 6=Sat
+    monthDay?: { month: number, day: number }; // For Yearly
+}
+
 export interface Task {
     id: string;
     title: string;
@@ -13,6 +21,8 @@ export interface Task {
     quadrant?: EisenhowerQuadrant;
     skills: string[]; // e.g., ['Focus', 'Coding']
     trackerId: string;
+    isEvent?: boolean; // New: Distinguish between Gamified Task and Calendar Event
+    recurrence?: RecurrenceConfig; // New: Recurring events
     createdAt: number;
     dueDate?: number; // Timestamp
     endTime?: number; // Timestamp or duration
@@ -88,4 +98,14 @@ export interface Reminder {
     time: number; // Timestamp
     isEnabled: boolean;
     isRecurring?: boolean; // For future
+}
+
+export interface DayPlan {
+    id: string;
+    date: string; // YYYY-MM-DD
+    isLocked: boolean;
+    fluxStartHour: number; // 0-23
+    fluxEndHour: number; // 0-23
+    userId?: string;
+    $id?: string;
 }

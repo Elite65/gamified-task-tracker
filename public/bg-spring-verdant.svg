@@ -1,0 +1,38 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Spring Green Gradient (Fresh, Nature-inspired) -->
+    <linearGradient id="springRain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#558B6E" stop-opacity="0" />
+      <stop offset="50%" stop-color="#558B6E" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#558B6E" stop-opacity="0" />
+    </linearGradient>
+    
+    <style>
+      .layer-1 { animation: flow 2.5s linear infinite; }
+      .layer-2 { animation: flow 2s linear infinite; }
+      
+      @keyframes flow {
+        from { transform: translate(-80px, -80px); }
+        to { transform: translate(80px, 80px); }
+      }
+    </style>
+  </defs>
+
+  <!-- Spring Shower: Fresh Green Rain -->
+  
+  <g class="layer-1">
+    <line x1="20" y1="10" x2="50" y2="40" stroke="url(#springRain)" stroke-width="1.2" stroke-linecap="round" />
+    <line x1="100" y1="50" x2="130" y2="80" stroke="url(#springRain)" stroke-width="1.2" stroke-linecap="round" />
+    <line x1="170" y1="20" x2="200" y2="50" stroke="url(#springRain)" stroke-width="1.2" stroke-linecap="round" />
+    <line x1="60" y1="120" x2="90" y2="150" stroke="url(#springRain)" stroke-width="1.2" stroke-linecap="round" />
+  </g>
+
+  <g class="layer-2">
+    <line x1="40" y1="0" x2="80" y2="40" stroke="url(#springRain)" stroke-width="1.8" stroke-linecap="round" />
+    <line x1="140" y1="80" x2="180" y2="120" stroke="url(#springRain)" stroke-width="1.8" stroke-linecap="round" />
+    <line x1="10" y1="160" x2="50" y2="200" stroke="url(#springRain)" stroke-width="1.8" stroke-linecap="round" />
+    
+    <!-- Seamless Loop offsets -->
+    <line x1="-10" y1="-10" x2="30" y2="30" stroke="url(#springRain)" stroke-width="1.8" stroke-linecap="round" />
+  </g>
+</svg>

@@ -88,7 +88,7 @@ export const Dashboard: React.FC = () => {
                 </div>
 
                 {/* Reminder Widget */}
-                <div className="col-span-1 p-0 rounded-3xl bg-transparent flex flex-col justify-center h-48 overflow-hidden relative z-10">
+                <div className="col-span-1 p-0 rounded-3xl bg-tech-surface border border-tech-border flex flex-col justify-center h-48 overflow-hidden relative z-10">
                     <ReminderWidget />
                 </div>
 

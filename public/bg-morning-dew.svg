@@ -1,0 +1,32 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .float-slow { animation: rise 4s linear infinite; }
+      .float-med { animation: rise 3s linear infinite; }
+      .float-fast { animation: rise 2s linear infinite; }
+      
+      @keyframes rise {
+        from { transform: translateY(200px); }
+        to { transform: translateY(-50px); }
+      }
+    </style>
+  </defs>
+
+  <!-- Morning Dew: Floating Orbs (Bokeh) -->
+  
+  <!-- Soft Pink Orbs -->
+  <circle cx="20" cy="0" r="8" fill="#F472B6" opacity="0.3" class="float-slow" />
+  <circle cx="150" cy="50" r="12" fill="#F472B6" opacity="0.2" class="float-med" style="animation-delay: 1s;" />
+  
+  <!-- Pale Green Orbs (Mint) -->
+  <circle cx="80" cy="180" r="6" fill="#A7F3D0" opacity="0.4" class="float-fast" />
+  <circle cx="180" cy="120" r="10" fill="#A7F3D0" opacity="0.25" class="float-slow" style="animation-delay: 0.5s;" />
+
+  <!-- White Highlights (Dew) -->
+  <circle cx="50" cy="80" r="4" fill="#FFFFFF" opacity="0.6" class="float-med" style="animation-delay: 2s;" />
+  <circle cx="120" cy="150" r="5" fill="#FFFFFF" opacity="0.5" class="float-fast" style="animation-delay: 1.5s;" />
+  
+  <!-- Loop Fillers (for seamlessness) -->
+  <circle cx="30" cy="220" r="7" fill="#FBCFE8" opacity="0.3" class="float-slow" style="animation-delay: 2.5s;" />
+  <circle cx="160" cy="210" r="9" fill="#A7F3D0" opacity="0.3" class="float-med" />
+</svg>

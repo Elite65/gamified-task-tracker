@@ -1,0 +1,32 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Simple Blue Drop Gradient -->
+    <linearGradient id="blueRain" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0" />
+      <stop offset="50%" stop-color="#3B82F6" stop-opacity="1" />
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0" />
+    </linearGradient>
+    
+    <style>
+      .drop { animation: fall 0.8s linear infinite; }
+      .drop-fast { animation: fall 0.6s linear infinite; }
+      .drop-slow { animation: fall 1.2s linear infinite; }
+      
+      @keyframes fall {
+        from { transform: translateY(-50px); }
+        to { transform: translateY(250px); }
+      }
+    </style>
+  </defs>
+
+  <!-- Vertical Falling Blue Drops -->
+  <rect x="20" y="-50" width="2" height="20" fill="url(#blueRain)" class="drop-slow" />
+  <rect x="50" y="-80" width="2" height="25" fill="url(#blueRain)" class="drop" style="animation-delay: 0.2s" />
+  <rect x="90" y="-20" width="2" height="15" fill="url(#blueRain)" class="drop-fast" style="animation-delay: 0.5s" />
+  <rect x="140" y="-60" width="2" height="22" fill="url(#blueRain)" class="drop" style="animation-delay: 0.1s" />
+  <rect x="180" y="-40" width="2" height="18" fill="url(#blueRain)" class="drop-slow" style="animation-delay: 0.7s" />
+  
+  <rect x="35" y="-10" width="2" height="20" fill="url(#blueRain)" class="drop-fast" style="animation-delay: 0.4s" />
+  <rect x="110" y="-70" width="2" height="25" fill="url(#blueRain)" class="drop" style="animation-delay: 0.8s" />
+  <rect x="165" y="-30" width="2" height="15" fill="url(#blueRain)" class="drop-slow" style="animation-delay: 0.3s" />
+</svg>

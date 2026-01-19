@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Task, Tracker, UserStats, INITIAL_STATS, TaskStatus, SkillStats, Habit, HabitLog, Reminder } from '../types';
+import { Task, Tracker, UserStats, INITIAL_STATS, TaskStatus, SkillStats, Habit, HabitLog, Reminder, DayPlan } from '../types';
 import { useToast } from './ToastContext';
 import { account, databases, DATABASE_ID, COLLECTIONS, storage, BUCKET_ID, client } from '../lib/appwrite';
 import { ID, Query } from 'appwrite';
@@ -36,6 +36,13 @@ interface GameContextType {
     updateHabit: (habitId: string, updates: Partial<Omit<Habit, 'id' | 'userId'>>) => void;
     deleteHabit: (habitId: string) => void;
     logHabit: (habitId: string, date: string, value: number) => void;
+
+    // Day Planner
+    dayPlans: DayPlan[];
+    getDayPlan: (date: string) => DayPlan;
+    getTasksForDate: (date: Date) => Task[];
+    lockDay: (date: string) => void;
+    unlockDay: (date: string) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -137,6 +144,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [habitLogs, setHabitLogs] = useState<HabitLog[]>([]);
     const [reminders, setReminders] = useState<Reminder[]>([]);
     const [userStats, setUserStats] = useState<UserStats>(safeParse('gtt_stats', JSON.parse(JSON.stringify(INITIAL_STATS))));
+    const [dayPlans, setDayPlans] = useState<DayPlan[]>([]);
     const [currentTheme, setCurrentTheme] = useState<string>('default');
 
     // Apply Theme Colors
@@ -155,7 +163,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!theme.colors.calendarBorder) {
             root.style.setProperty('--color-calendar-border', theme.colors.border);
         }
-    }, [currentTheme]);
+    }, [currentTheme, themes]);
 
     // 1. Check Auth Status on Mount
     useEffect(() => {
@@ -187,6 +195,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setHabits(safeParse('gtt_habits', []));
         setHabitLogs(safeParse('gtt_habit_logs', []));
         setReminders(safeParse('gtt_reminders', []));
+        setDayPlans(safeParse('gtt_day_plans', []));
         setUserStats(safeParse('gtt_stats', JSON.parse(JSON.stringify(INITIAL_STATS))));
     };
 
@@ -201,7 +210,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const quadrantSkill = skills.find((s: string) => s.startsWith('quadrant:'));
                 const quadrant = quadrantSkill ? quadrantSkill.split(':')[1] : undefined;
                 const cleanSkills = skills.filter((s: string) => !s.startsWith('quadrant:'));
-                return { ...doc, id: doc.$id, skills: cleanSkills, quadrant } as any;
+
+                let recurrence = undefined;
+                if (doc.recurrence) {
+                    try {
+                        recurrence = JSON.parse(doc.recurrence);
+                    } catch (e) {
+                        console.warn('Failed to parse recurrence for task', doc.$id);
+                    }
+                }
+
+                return { ...doc, id: doc.$id, skills: cleanSkills, quadrant, recurrence } as any;
             }));
 
             // Load Trackers
@@ -263,9 +282,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.setItem('gtt_habits', JSON.stringify(habits));
             localStorage.setItem('gtt_habit_logs', JSON.stringify(habitLogs));
             localStorage.setItem('gtt_reminders', JSON.stringify(reminders));
+            localStorage.setItem('gtt_day_plans', JSON.stringify(dayPlans));
             localStorage.setItem('gtt_stats', JSON.stringify(userStats));
         }
-    }, [tasks, trackers, habits, habitLogs, userStats, loading]);
+    }, [tasks, trackers, habits, habitLogs, reminders, dayPlans, userStats, loading]);
 
     const logout = async () => {
         await account.deleteSession('current');
@@ -455,17 +475,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 await syncStatsToCloud(currentStats, user);
 
                 // Create Task
-                const { id, quadrant, ...taskPayload } = newTask;
+                const { id, quadrant, recurrence, ...taskPayload } = newTask;
                 const skillsToSave = [...newTask.skills];
                 if (quadrant) skillsToSave.push(`quadrant:${quadrant}`);
 
-                await databases.createDocument(DATABASE_ID, COLLECTIONS.TASKS, newTask.id, {
+                const finalPayload: any = {
                     ...taskPayload,
                     userId: user.$id,
                     skills: skillsToSave,
                     dueDate: newTask.dueDate ? String(newTask.dueDate) : null,
                     endTime: newTask.endTime ? String(newTask.endTime) : null,
-                });
+                    isEvent: newTask.isEvent || false
+                };
+
+                if (recurrence) {
+                    finalPayload.recurrence = JSON.stringify(recurrence);
+                }
+
+                await databases.createDocument(DATABASE_ID, COLLECTIONS.TASKS, newTask.id, finalPayload);
             } catch (e: any) {
                 console.error('Failed to create task in cloud', e);
                 showToast(`Sync Failed: ${e.message}`, { type: 'error' });
@@ -485,9 +512,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let msg = '';
 
         if (status === 'COMPLETED' && oldStatus !== 'COMPLETED') {
-            const res = calculateXpUpdate(currentStats, task.difficulty, task.skills, 1);
+            // Check Flux Zone
+            const now = new Date();
+            const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const dayPlan = getDayPlan(dateKey);
+            const currentHour = now.getHours();
+
+            let multiplier = 1;
+            if (currentHour >= dayPlan.fluxStartHour && currentHour < dayPlan.fluxEndHour) {
+                multiplier = 2;
+                msg = 'FLUX ZONE: Double XP Gained!';
+            } else {
+                msg = 'Mission Complete! XP Gained.';
+            }
+
+            const res = calculateXpUpdate(currentStats, task.difficulty, task.skills, multiplier);
             currentStats = res.stats;
-            msg = 'Mission Complete! XP Gained.';
         } else if (oldStatus === 'COMPLETED' && status !== 'COMPLETED') {
             const res = calculateXpUpdate(currentStats, task.difficulty, task.skills, -1);
             currentStats = res.stats;
@@ -552,6 +592,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (updates.dueDate !== undefined) payload.dueDate = updates.dueDate ? String(updates.dueDate) : null;
                 if (updates.endTime !== undefined) payload.endTime = updates.endTime ? String(updates.endTime) : null;
 
+                if (updates.recurrence) {
+                    payload.recurrence = JSON.stringify(updates.recurrence);
+                }
+
                 if (updates.quadrant !== undefined || updates.skills !== undefined) {
                     const t = tasks.find(t => t.id === taskId);
                     const s = updates.skills || (t ? t.skills : []);
@@ -570,8 +614,35 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const deleteTask = async (taskId: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (task && !task.isEvent) {
+            // Check for Lock-In Penalty
+            // Use Due Date if available, else Today
+            let dateKey: string;
+            if (task.dueDate) {
+                const d = new Date(task.dueDate);
+                dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            } else {
+                const now = new Date();
+                dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            }
+
+            const dayPlan = getDayPlan(dateKey);
+            if (dayPlan.isLocked) {
+                const newStats = { ...userStats };
+                newStats.xp -= 25; // Penalty for abandoning mission
+                if (newStats.xp < 0) newStats.xp = 0;
+                setUserStats(newStats);
+                showToast('Mission Abandoned. Protocol Penalty (-25 XP)', { type: 'error' });
+                if (user) await syncStatsToCloud(newStats, user);
+            } else {
+                showToast('Mission deleted.', { type: 'info' });
+            }
+        } else {
+            showToast('Item deleted.', { type: 'info' });
+        }
+
         setTasks(prev => prev.filter(t => t.id !== taskId));
-        showToast('Mission deleted.', { type: 'info' });
 
         if (user) {
             try {
@@ -1039,38 +1110,177 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    // --- Day Planner Logic ---
+
+    const getDayPlan = (date: string): DayPlan => {
+        const existing = dayPlans.find(dp => dp.date === date);
+        if (existing) return existing;
+
+        // Generate new plan (5AM - 12PM for Flux start)
+        const fluxStart = Math.floor(Math.random() * (12 - 5 + 1)) + 5; // 5 to 12
+        const fluxEnd = fluxStart + 2;
+
+        const newPlan: DayPlan = {
+            id: crypto.randomUUID(),
+            date,
+            isLocked: false,
+            fluxStartHour: fluxStart,
+            fluxEndHour: fluxEnd
+        };
+
+        // Don't save yet? Or save immediately? 
+        // Better to save so random seed persists.
+        setDayPlans(prev => [...prev, newPlan]);
+        return newPlan;
+    };
+
+    // --- Recurrence Logic Helpers ---
+    const checkRecurrence = (task: Task, targetDate: Date): boolean => {
+        if (!task.recurrence || task.recurrence.frequency === 'NONE') return false;
+
+        const targetDateObj = new Date(targetDate);
+        targetDateObj.setHours(0, 0, 0, 0);
+
+        // Check if task was created AFTER the target date (schedule shouldn't go back in time effectively, or maybe it should? Standard logic: start from creation)
+        const createdAt = new Date(task.createdAt);
+        createdAt.setHours(0, 0, 0, 0);
+        if (targetDateObj.getTime() < createdAt.getTime()) return false;
+
+        const { frequency, daysOfWeek, monthDay } = task.recurrence;
+
+        switch (frequency) {
+            case 'DAILY':
+                return true;
+            case 'WEEKLY':
+                // Check if target day matches any in daysOfWeek
+                if (!daysOfWeek || daysOfWeek.length === 0) return false;
+                return daysOfWeek.includes(targetDateObj.getDay());
+            case 'YEARLY':
+                if (!monthDay) return false;
+                return (targetDateObj.getMonth() === monthDay.month && targetDateObj.getDate() === monthDay.day);
+            case 'CUSTOM':
+                // Same as weekly for now, can be complex logic later
+                if (!daysOfWeek || daysOfWeek.length === 0) return false;
+                return daysOfWeek.includes(targetDateObj.getDay());
+            default:
+                return false;
+        }
+    };
+
+    const getTasksForDate = (date: Date) => {
+        const targetTime = date.getTime();
+
+        return tasks.filter(task => {
+            // 1. Check direct Due Date match
+            if (task.dueDate) {
+                const taskDate = new Date(task.dueDate);
+                if (
+                    taskDate.getDate() === date.getDate() &&
+                    taskDate.getMonth() === date.getMonth() &&
+                    taskDate.getFullYear() === date.getFullYear()
+                ) {
+                    return true;
+                }
+            }
+
+            // 2. Check Recurrence
+            if (task.recurrence && task.isEvent) { // Only Schedule items recur for now? Or Tasks too? User said "schedule events".
+                return checkRecurrence(task, date);
+            }
+
+            return false;
+        });
+    };
+
+    const lockDay = async (date: string) => {
+        const plan = getDayPlan(date);
+        if (plan.isLocked) return;
+
+        // Update Plan
+        const updatedPlan = { ...plan, isLocked: true };
+        setDayPlans(prev => prev.map(p => p.date === date ? updatedPlan : p));
+
+        // Grant Bonus XP (Tactician Bonus)
+        const newStats = { ...userStats };
+        newStats.xp += Math.floor(newStats.nextLevelXp * 0.1);
+
+        // Overflow check
+        while (newStats.xp >= newStats.nextLevelXp) {
+            newStats.level += 1;
+            newStats.xp = newStats.xp - newStats.nextLevelXp;
+            newStats.nextLevelXp = Math.floor(newStats.nextLevelXp * 1.5);
+            showToast(`Level Up! You are now Level ${newStats.level}`, { type: 'success' });
+        }
+
+        setUserStats(newStats);
+        showToast('Protocol Initialized. Plan Locked. (+10% XP)', { type: 'success' });
+        if (user) await syncStatsToCloud(newStats, user);
+    };
+
+    const unlockDay = async (date: string) => {
+        const plan = getDayPlan(date);
+        if (!plan.isLocked) return;
+
+        // Update Plan
+        const updatedPlan = { ...plan, isLocked: false };
+        setDayPlans(prev => prev.map(p => p.date === date ? updatedPlan : p));
+
+        // Deduct Penalty
+        const newStats = { ...userStats };
+        newStats.xp -= 50; // Penalty
+        if (newStats.xp < 0) newStats.xp = 0;
+
+        setUserStats(newStats);
+        showToast('Protocol Unlocked. Penalty Applied (-50 XP).', { type: 'error' });
+        if (user) await syncStatsToCloud(newStats, user);
+    };
+
+    const value = {
+        user,
+        tasks,
+        trackers,
+        userStats,
+        habits,
+        habitLogs,
+        reminders,
+        addReminder: (r: any) => setReminders(prev => [...prev, { ...r, id: crypto.randomUUID() }]),
+        updateReminder: (id: string, u: any) => setReminders(prev => prev.map(r => r.id === id ? { ...r, ...u } : r)),
+        deleteReminder: (id: string) => setReminders(prev => prev.filter(r => r.id !== id)),
+        addTask,
+        updateTaskStatus,
+        updateTask,
+        deleteTask,
+        addTracker,
+        deleteTracker,
+        resetStats,
+        setStats: setUserStats,
+        updateSkills: (s: any) => setUserStats(prev => ({ ...prev, skills: s })),
+        updateProfile: async () => { }, // Placeholder
+        updateGlobalBanner: async () => { }, // Placeholder
+        resetGlobalBanner: async () => { }, // Placeholder
+        currentTheme,
+        setTheme: (id: string) => {
+            setCurrentTheme(id);
+            if (user) {
+                account.updatePrefs({ themeId: id }).catch(console.error);
+            }
+        },
+        logout,
+        addHabit,
+        updateHabit,
+        deleteHabit,
+        logHabit,
+
+        // Day Planner
+        dayPlans,
+        getDayPlan,
+        getTasksForDate,
+        lockDay,
+        unlockDay,
+    };
+
     return (
-        <GameContext.Provider value={{
-            user,
-            tasks,
-            habits,
-            habitLogs,
-            reminders,
-            addReminder,
-            updateReminder,
-            deleteReminder,
-            trackers,
-            userStats,
-            addTask,
-            updateTaskStatus,
-            updateTask,
-            deleteTask,
-            addTracker,
-            deleteTracker,
-            addHabit,
-            updateHabit,
-            deleteHabit,
-            logHabit,
-            resetStats,
-            setStats,
-            updateSkills,
-            updateProfile,
-            updateGlobalBanner,
-            resetGlobalBanner,
-            currentTheme,
-            setTheme,
-            logout
-        }}>
+        <GameContext.Provider value={value}>
             {children}
         </GameContext.Provider>
     );

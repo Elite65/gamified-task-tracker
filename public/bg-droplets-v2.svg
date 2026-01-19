@@ -1,0 +1,43 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- High Contrast Blue/Teal Gradient -->
+    <linearGradient id="visibleDrop" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.6" /> <!-- Light Blue -->
+      <stop offset="100%" stop-color="#0EA5E9" stop-opacity="0.8" /> <!-- Blue -->
+    </linearGradient>
+    
+    <!-- Teardrop Shape -->
+    <path id="drop" d="M0,0 C0,0 -3,5 0,10 C3,5 0,0 0,0 Z" />
+    
+    <style>
+      .fall-slow { animation: fall 3s linear infinite; }
+      .fall-med { animation: fall 2s linear infinite; }
+      .fall-fast { animation: fall 1.5s linear infinite; }
+      
+      @keyframes fall {
+        from { transform: translateY(-50px); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        to { transform: translateY(250px); opacity: 0; }
+      }
+    </style>
+  </defs>
+
+  <!-- High Contrast Droplets -->
+  
+  <!-- Back Layer -->
+  <use href="#drop" x="20" y="0" fill="url(#visibleDrop)" transform="scale(0.8)" class="fall-slow" style="animation-delay: 0s" />
+  <use href="#drop" x="150" y="-30" fill="url(#visibleDrop)" transform="scale(0.8)" class="fall-slow" style="animation-delay: 1.5s" />
+  
+  <!-- Middle Layer -->
+  <use href="#drop" x="80" y="-20" fill="url(#visibleDrop)" transform="scale(1)" class="fall-med" style="animation-delay: 0.5s" />
+  <use href="#drop" x="180" y="-50" fill="url(#visibleDrop)" transform="scale(1)" class="fall-med" style="animation-delay: 1s" />
+  
+  <!-- Front Layer -->
+  <use href="#drop" x="50" y="-40" fill="url(#visibleDrop)" transform="scale(1.5)" class="fall-fast" style="animation-delay: 0.2s" />
+  <use href="#drop" x="120" y="-60" fill="url(#visibleDrop)" transform="scale(1.5)" class="fall-fast" style="animation-delay: 0.8s" />
+  
+  <!-- Fillers -->
+  <use href="#drop" x="30" y="100" fill="url(#visibleDrop)" transform="scale(1.2)" class="fall-med" style="animation-delay: 1.2s" />
+  <use href="#drop" x="160" y="80" fill="url(#visibleDrop)" transform="scale(0.9)" class="fall-slow" style="animation-delay: 2s" />
+</svg>

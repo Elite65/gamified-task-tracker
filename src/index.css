@@ -35,6 +35,16 @@
   }
 }
 
+@layer utilities {
+  /* ... */
+}
+
+/* Force overrides outside layer to guarantee precedence */
+.bg-tech-bg {
+  /* Ensuring background property is used */
+  background: var(--color-bg) !important;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

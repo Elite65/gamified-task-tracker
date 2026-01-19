@@ -1,0 +1,36 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#bef264" stop-opacity="0.9"/> <!-- Lime Core -->
+      <stop offset="40%" stop-color="#bef264" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#bef264" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="soft" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fde047" stop-opacity="0.6"/> <!-- Yellow Soft -->
+      <stop offset="100%" stop-color="#fde047" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="none"/>
+  
+  <!-- Focused Fireflies (Glow) -->
+  <circle cx="50" cy="80" r="3" fill="url(#glow)"/>
+  <circle cx="200" cy="150" r="2.5" fill="url(#glow)"/>
+  <circle cx="320" cy="60" r="3" fill="url(#glow)"/>
+  <circle cx="120" cy="250" r="2.5" fill="url(#glow)"/>
+  <circle cx="350" cy="300" r="3" fill="url(#glow)"/>
+  <circle cx="20" cy="320" r="2" fill="url(#glow)"/>
+  <circle cx="250" cy="200" r="2.5" fill="url(#glow)"/>
+  <circle cx="150" cy="350" r="2" fill="url(#glow)"/>
+
+  <!-- Background/Distant Fireflies (Soft) -->
+  <circle cx="90" cy="40" r="4" fill="url(#soft)" opacity="0.6"/>
+  <circle cx="280" cy="100" r="5" fill="url(#soft)" opacity="0.5"/>
+  <circle cx="160" cy="100" r="3" fill="url(#soft)" opacity="0.7"/>
+  <circle cx="380" cy="200" r="4" fill="url(#soft)" opacity="0.6"/>
+  <circle cx="60" cy="200" r="3" fill="url(#soft)" opacity="0.7"/>
+  <circle cx="290" cy="350" r="5" fill="url(#soft)" opacity="0.5"/>
+  <circle cx="80" cy="150" r="2" fill="url(#soft)" opacity="0.8"/>
+  <circle cx="220" cy="320" r="3" fill="url(#soft)" opacity="0.6"/>
+  <circle cx="350" cy="40" r="2" fill="url(#soft)" opacity="0.7"/>
+  <circle cx="180" cy="280" r="4" fill="url(#soft)" opacity="0.5"/>
+</svg>

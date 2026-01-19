@@ -1,0 +1,16 @@
+<svg width="100" height="30" viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1"/>
+      <feOffset dx="0" dy="1" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge> 
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/> 
+      </feMerge>
+    </filter>
+  </defs>
+  <path d="M0,0 L100,0 L100,10 C90,10 85,18 75,18 C65,18 60,12 50,12 C40,12 35,22 25,22 C15,22 10,10 0,10 Z" fill="#FFFFFF" filter="url(#shadow)"/>
+</svg>

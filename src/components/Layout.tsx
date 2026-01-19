@@ -96,7 +96,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     );
 
     return (
-        <div className="flex h-[100dvh] bg-tech-bg text-tech-text font-sans selection:bg-tech-primary selection:text-black overflow-hidden">
+        <div
+            className="flex h-[100dvh] text-tech-text font-sans selection:bg-tech-primary selection:text-black overflow-hidden transform-gpu"
+            style={{ background: 'var(--color-bg)' }}
+        >
             <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
             {croppingBanner && (
@@ -135,7 +138,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
                 <div className="p-6 mt-auto">
                     {/* Clock Widget (Mini) */}
-                    <div className="mb-4 p-4 rounded-2xl bg-tech-bg border border-tech-border/50">
+                    <div className="mb-4 p-4 rounded-2xl bg-black/5 border border-tech-border/50">
                         <div className="flex items-center gap-2 text-tech-text-secondary text-xs mb-2 font-bold tracking-wider">
                             <Clock className="w-3 h-3" />
                             <span>TIME</span>
