@@ -238,7 +238,29 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     {location.pathname === '/' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
                 </Link>
 
-                {/* 2. Tasks */}
+                {/* 2. Calendar */}
+                <Link
+                    to="/calendar"
+                    className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/calendar' ? 'text-tech-primary' : 'text-gray-500'}`}
+                >
+                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/calendar' ? 'bg-tech-primary/10' : ''}`}>
+                        <Calendar className="w-6 h-6" strokeWidth={location.pathname === '/calendar' ? 2.5 : 2} />
+                    </div>
+                    {location.pathname === '/calendar' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
+                </Link>
+
+                {/* 2. Calendar */}
+                <Link
+                    to="/calendar"
+                    className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/calendar' ? 'text-tech-primary' : 'text-gray-500'}`}
+                >
+                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/calendar' ? 'bg-tech-primary/10' : ''}`}>
+                        <Calendar className="w-6 h-6" strokeWidth={location.pathname === '/calendar' ? 2.5 : 2} />
+                    </div>
+                    {location.pathname === '/calendar' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
+                </Link>
+
+                {/* 3. Tasks */}
                 <Link
                     to="/tasks"
                     className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/tasks' ? 'text-tech-primary' : 'text-gray-500'}`}
