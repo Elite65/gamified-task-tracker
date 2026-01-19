@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { Plus, Check } from 'lucide-react';
+import { INITIAL_STATS } from '../types';
 
 interface SkillSelectorProps {
     selectedSkills: string[];
@@ -12,10 +13,12 @@ export const SkillSelector: React.FC<SkillSelectorProps> = ({ selectedSkills, on
     const [isAdding, setIsAdding] = useState(false);
     const [newSkillText, setNewSkillText] = useState('');
 
-    // Get unique existing skills from graph
-    const existingSkills = Object.values(userStats.skills || {})
-        .map(s => s.name)
-        .sort();
+    // Get unique existing skills from graph, merging with default skills to always show something
+    const userSkillNames = Object.values(userStats.skills || {}).map(s => s.name);
+    const defaultSkillNames = Object.values(INITIAL_STATS.skills).map(s => s.name);
+
+    // Merge: user skills + default skills (unique), maintaining user skills order then defaults
+    const existingSkills = [...new Set([...userSkillNames, ...defaultSkillNames])].sort();
 
     const toggleSkill = (skill: string) => {
         if (selectedSkills.includes(skill)) {

@@ -127,14 +127,25 @@ export const SettingsPage: React.FC = () => {
                                         Install as a standalone app on Windows, Mac, or Linux. Updates instantly.
                                     </p>
                                     <button
-                                        onClick={handleInstallPWA}
-                                        disabled={!deferredPrompt}
+                                        onClick={() => {
+                                            if (deferredPrompt) {
+                                                handleInstallPWA();
+                                            } else {
+                                                // Check if already installed
+                                                const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+                                                if (isStandalone) {
+                                                    alert("Running in App Mode 📱\n\nYou are already using the installed version!");
+                                                } else {
+                                                    alert("Install Prompt Not Ready ⏳\n\n1. Look for the 'Install' icon in your address bar (top right).\n2. Or check Chrome Menu -> Install Elite65.\n3. Reloading the page might help trigger the prompt.");
+                                                }
+                                            }
+                                        }}
                                         className={`mt-auto w-full py-2 rounded-lg font-bold text-sm transition-all ${deferredPrompt
                                             ? 'bg-tech-primary text-black hover:bg-tech-primary/80'
-                                            : 'bg-tech-border/20 text-tech-text-secondary border border-tech-border cursor-not-allowed'
+                                            : 'bg-tech-border/20 text-tech-text-secondary border border-tech-border hover:bg-tech-border/40' // Enable hover for help
                                             }`}
                                     >
-                                        {deferredPrompt ? 'INSTALL APP' : 'INSTALLED / UNSUPPORTED'}
+                                        {deferredPrompt ? 'INSTALL APP' : (window.matchMedia('(display-mode: standalone)').matches ? 'OPENED IN APP' : 'INSTALL HELP')}
                                     </button>
                                 </div>
 

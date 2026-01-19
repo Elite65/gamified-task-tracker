@@ -118,8 +118,8 @@ export const Dashboard: React.FC = () => {
                 </div>
 
                 {/* Hex Graph Widget (Optional / Row 2) */}
-                <div className="col-span-1 md:col-span-2 p-6 rounded-3xl bg-tech-surface border border-tech-border h-48 flex items-center relative group">
-                    <div className="flex-1 z-10 pl-2">
+                <div className="col-span-1 md:col-span-2 p-6 rounded-3xl bg-tech-surface border border-tech-border h-auto md:h-48 flex flex-col md:flex-row items-center relative group">
+                    <div className="flex-1 w-full md:w-auto z-10 pl-2 mb-4 md:mb-0">
                         <h3 className="font-bold text-lg mb-4">Life Balance</h3>
                         {/* Editable Quote */}
                         <div className="relative mb-4">
@@ -168,7 +168,7 @@ export const Dashboard: React.FC = () => {
                             Edit Skills
                         </button>
                     </div>
-                    <div className="relative w-56 h-32 flex items-center justify-center">
+                    <div className="relative w-full h-64 md:w-56 md:h-32 flex items-center justify-center flex-shrink-0">
                         <HexSkillGraph stats={userStats} />
                     </div>
                 </div>
