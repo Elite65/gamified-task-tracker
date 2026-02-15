@@ -1112,26 +1112,26 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // --- Day Planner Logic ---
 
+    // --- Day Planner Logic ---
     const getDayPlan = (date: string): DayPlan => {
         const existing = dayPlans.find(dp => dp.date === date);
         if (existing) return existing;
 
-        // Generate new plan (5AM - 12PM for Flux start)
-        const fluxStart = Math.floor(Math.random() * (12 - 5 + 1)) + 5; // 5 to 12
+        // Generate deterministic pseudo-random plan (no side effects)
+        let hash = 0;
+        for (let i = 0; i < date.length; i++) {
+            hash = date.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const fluxStart = (Math.abs(hash) % 8) + 5; // 5 to 12
         const fluxEnd = fluxStart + 2;
 
-        const newPlan: DayPlan = {
-            id: crypto.randomUUID(),
+        return {
+            id: `temp-${date}`, // Temporary ID until saved
             date,
             isLocked: false,
             fluxStartHour: fluxStart,
             fluxEndHour: fluxEnd
         };
-
-        // Don't save yet? Or save immediately? 
-        // Better to save so random seed persists.
-        setDayPlans(prev => [...prev, newPlan]);
-        return newPlan;
     };
 
     // --- Recurrence Logic Helpers ---
@@ -1141,7 +1141,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const targetDateObj = new Date(targetDate);
         targetDateObj.setHours(0, 0, 0, 0);
 
-        // Check if task was created AFTER the target date (schedule shouldn't go back in time effectively, or maybe it should? Standard logic: start from creation)
         const createdAt = new Date(task.createdAt);
         createdAt.setHours(0, 0, 0, 0);
         if (targetDateObj.getTime() < createdAt.getTime()) return false;
@@ -1152,14 +1151,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             case 'DAILY':
                 return true;
             case 'WEEKLY':
-                // Check if target day matches any in daysOfWeek
                 if (!daysOfWeek || daysOfWeek.length === 0) return false;
                 return daysOfWeek.includes(targetDateObj.getDay());
             case 'YEARLY':
                 if (!monthDay) return false;
                 return (targetDateObj.getMonth() === monthDay.month && targetDateObj.getDate() === monthDay.day);
             case 'CUSTOM':
-                // Same as weekly for now, can be complex logic later
                 if (!daysOfWeek || daysOfWeek.length === 0) return false;
                 return daysOfWeek.includes(targetDateObj.getDay());
             default:
@@ -1168,10 +1165,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const getTasksForDate = (date: Date) => {
-        const targetTime = date.getTime();
-
         return tasks.filter(task => {
-            // 1. Check direct Due Date match
             if (task.dueDate) {
                 const taskDate = new Date(task.dueDate);
                 if (
@@ -1182,18 +1176,40 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     return true;
                 }
             }
-
-            // 2. Check Recurrence
-            if (task.recurrence && task.isEvent) { // Only Schedule items recur for now? Or Tasks too? User said "schedule events".
+            if (task.recurrence && task.isEvent) {
                 return checkRecurrence(task, date);
             }
-
             return false;
         });
     };
 
+    const syncDayPlanToCloud = async (date: string, updates: Partial<Omit<DayPlan, 'id' | 'date' | 'userId'>>) => {
+        if (!user) return;
+        const planIndex = dayPlans.findIndex(p => p.date === date);
+        const planId = planIndex >= 0 ? dayPlans[planIndex].id : date;
+
+        try {
+            await databases.upsertDocument(DATABASE_ID, COLLECTIONS.DAY_PLANS, planId, {
+                userId: user.$id,
+                date: date,
+                ...updates,
+            });
+        } catch (e: any) {
+            console.error('Failed to sync day plan:', e);
+            showToast(`Sync Failed: ${e.message}`, { type: 'error' });
+        }
+    };
+
     const lockDay = async (date: string) => {
-        const plan = getDayPlan(date);
+        let plan = dayPlans.find(p => p.date === date);
+
+        // If plan doesn't exist in state yet (was virtual), create it now
+        if (!plan) {
+            const virtualPlan = getDayPlan(date);
+            plan = { ...virtualPlan, id: crypto.randomUUID() }; // Assign real ID
+            setDayPlans(prev => [...prev, plan!]);
+        }
+
         if (plan.isLocked) return;
 
         // Update Plan
@@ -1214,12 +1230,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setUserStats(newStats);
         showToast('Protocol Initialized. Plan Locked. (+10% XP)', { type: 'success' });
-        if (user) await syncStatsToCloud(newStats, user);
+        if (user) {
+            await syncStatsToCloud(newStats, user);
+            await syncDayPlanToCloud(date, { isLocked: true });
+        }
     };
 
     const unlockDay = async (date: string) => {
-        const plan = getDayPlan(date);
-        if (!plan.isLocked) return;
+        const plan = dayPlans.find(p => p.date === date);
+        if (!plan || !plan.isLocked) return;
 
         // Update Plan
         const updatedPlan = { ...plan, isLocked: false };
@@ -1232,7 +1251,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setUserStats(newStats);
         showToast('Protocol Unlocked. Penalty Applied (-50 XP).', { type: 'error' });
-        if (user) await syncStatsToCloud(newStats, user);
+        if (user) {
+            await syncStatsToCloud(newStats, user);
+            await syncDayPlanToCloud(date, { isLocked: false });
+        }
     };
 
     const value = {
@@ -1255,9 +1277,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetStats,
         setStats: setUserStats,
         updateSkills: (s: any) => setUserStats(prev => ({ ...prev, skills: s })),
-        updateProfile: async () => { }, // Placeholder
-        updateGlobalBanner: async () => { }, // Placeholder
-        resetGlobalBanner: async () => { }, // Placeholder
+        updateProfile,
+        updateGlobalBanner,
+        resetGlobalBanner,
         currentTheme,
         setTheme: (id: string) => {
             setCurrentTheme(id);

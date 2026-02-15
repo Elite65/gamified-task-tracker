@@ -19,7 +19,8 @@ export const COLLECTIONS = {
     USER_STATS: 'user_stats',
     HABITS: 'habits',
     HABIT_LOGS: 'habit_logs',
-    REMINDERS: 'reminders'
+    REMINDERS: 'reminders',
+    DAY_PLANS: 'day_plans' // New collection for syncing locked days
 };
 
 export const BUCKET_ID = 'user-avatars';
