@@ -447,13 +447,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const addTask = async (taskData: Omit<Task, 'id' | 'createdAt'>) => {
-        // 1. Process Skills on INITIAL state
+        // 1. Process Skills (Only register if explicitly new)
         let currentStats = userStats;
-        const { stats: statsWithSkills, hasChanges } = registerNewSkills(currentStats, taskData.skills);
-
-        if (hasChanges) {
-            currentStats = statsWithSkills;
-            showToast('New skills registered.', { type: 'success' });
+        if (taskData.skills && taskData.skills.length > 0) {
+            const { stats: statsWithSkills, hasChanges } = registerNewSkills(currentStats, taskData.skills);
+            if (hasChanges) {
+                currentStats = statsWithSkills;
+            }
         }
 
         const newTask: Task = {
@@ -1291,7 +1291,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         deleteTracker,
         resetStats,
         setStats: setUserStats,
-        updateSkills: (s: any) => setUserStats(prev => ({ ...prev, skills: s })),
+        updateSkills: async (newSkills: any) => {
+            const newStats = { ...userStats, skills: newSkills };
+            setUserStats(newStats);
+            showToast('Skills updated.', { type: 'success' });
+            if (user) await syncStatsToCloud(newStats, user);
+        },
         updateProfile,
         updateGlobalBanner,
         resetGlobalBanner,
