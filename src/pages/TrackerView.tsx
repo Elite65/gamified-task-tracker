@@ -9,6 +9,7 @@ import { DateInput } from '../components/DateInput';
 import { TimeInput } from '../components/TimeInput';
 import { EisenhowerSelector } from '../components/EisenhowerSelector';
 import { EisenhowerQuadrant } from '../types';
+import { SkillSelector } from '../components/SkillSelector';
 
 export const TrackerView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -19,14 +20,14 @@ export const TrackerView: React.FC = () => {
     const [title, setTitle] = useState('');
     const [difficulty, setDifficulty] = useState<Difficulty>('EASY');
     const [status, setStatus] = useState<TaskStatus>('YET_TO_START');
-    const [skillsInput, setSkillsInput] = useState('');
+    const [skillsInput, setSkillsInput] = useState<string[]>([]);
     const [dateInput, setDateInput] = useState('');
     const [timeInput, setTimeInput] = useState('');
     const [quadrant, setQuadrant] = useState<EisenhowerQuadrant | undefined>(undefined);
     const [description, setDescription] = useState('');
 
     const tracker = trackers.find(t => t.id === id);
-    const trackerTasks = tasks.filter(t => t.trackerId === id);
+    const trackerTasks = tasks.filter(t => t.trackerId === id && !t.isEvent);
 
     if (!tracker) return <div>Tracker not found</div>;
 
@@ -51,7 +52,7 @@ export const TrackerView: React.FC = () => {
         addTask({
             title,
             difficulty,
-            skills: skillsInput.split(',').map(s => s.trim()).filter(Boolean),
+            skills: skillsInput,
             status,
             trackerId: tracker.id,
             description,
@@ -60,7 +61,7 @@ export const TrackerView: React.FC = () => {
         });
 
         setTitle('');
-        setSkillsInput('');
+        setSkillsInput([]);
         setDateInput('');
         setTimeInput('');
         setDescription('');
@@ -160,12 +161,9 @@ export const TrackerView: React.FC = () => {
                         />
 
                         <div>
-                            <label className="block text-xs font-mono text-gray-400 mb-1">SKILLS (Comma separated)</label>
-                            <input
-                                value={skillsInput}
-                                onChange={e => setSkillsInput(e.target.value)}
-                                className="w-full bg-black/30 border border-tech-border rounded p-2 focus:border-tech-primary outline-none text-white"
-                                placeholder="Focus, Coding, Design..."
+                            <SkillSelector
+                                selectedSkills={skillsInput}
+                                onChange={setSkillsInput}
                             />
                         </div>
 

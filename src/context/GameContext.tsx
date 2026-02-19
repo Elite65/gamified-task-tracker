@@ -557,15 +557,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => {
         let currentStats = userStats;
 
-        // 1. Register Skills
-        if (updates.skills) {
-            const { stats, hasChanges } = registerNewSkills(currentStats, updates.skills);
-            if (hasChanges) {
-                currentStats = stats;
+        const currentTask = tasks.find(t => t.id === taskId);
+
+        // 1. Register Skills (Only NEWLY ADDED ones)
+        if (updates.skills && currentTask) {
+            // Find skills that are in the update but NOT in the original task
+            const newlyAddedSkills = updates.skills.filter(s => !currentTask.skills.includes(s));
+
+            if (newlyAddedSkills.length > 0) {
+                const { stats, hasChanges } = registerNewSkills(currentStats, newlyAddedSkills);
+                if (hasChanges) {
+                    currentStats = stats;
+                }
             }
         }
-
-        const currentTask = tasks.find(t => t.id === taskId);
         if (currentTask) {
             const effectiveSkills = updates.skills || currentTask.skills;
             // 2. Adjust XP if status changing

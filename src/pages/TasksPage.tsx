@@ -31,7 +31,7 @@ export const TasksPage: React.FC = () => {
 
             <div className="flex-1 overflow-auto p-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">
-                    {tasks.map(task => (
+                    {tasks.filter(t => !t.isEvent).map(task => (
                         <TaskCard
                             key={task.id}
                             task={task}
