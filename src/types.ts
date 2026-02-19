@@ -71,15 +71,25 @@ export interface UserStats {
     level: number;
     xp: number;
     nextLevelXp: number;
+    credits: number; // New: Currency
+    inventory: string[]; // New: Unlocked items (theme IDs, etc.)
+    history: {
+        date: string;
+        xpGained: number;
+    }[];
     skills: Record<string, SkillStats>; // e.g., "Focus": { name: "Focus", value: 50, level: 5 }
     streak: number;
     lastLogin: string;
+    description?: string; // New: For "I am a..."
 }
 
 export const INITIAL_STATS: UserStats = {
     level: 1,
     xp: 0,
     nextLevelXp: 100,
+    credits: 0,
+    inventory: ['default'], // Default theme is always owned
+    history: [],
     streak: 0,
     lastLogin: new Date().toISOString(),
     skills: {

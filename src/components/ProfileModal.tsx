@@ -3,6 +3,7 @@ import { X, Camera, Save, Edit2, Trophy, Star, Zap } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { avatars, storage, BUCKET_ID } from '../lib/appwrite';
 import { ImageCropper } from './ImageCropper';
+import { EditSkillsModal } from './EditSkillsModal';
 
 interface ProfileModalProps {
     isOpen: boolean;
@@ -19,6 +20,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
     const [editBanner, setEditBanner] = useState<File | null>(null);
     const [previewBannerUrl, setPreviewBannerUrl] = useState<string>('');
     const [currentBannerUrl, setCurrentBannerUrl] = useState<string>('');
+    const [showSkillEditor, setShowSkillEditor] = useState(false);
 
     // Cropping State
     const [croppingImage, setCroppingImage] = useState<string | null>(null);
@@ -238,10 +240,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
 
                         {/* Skills Grid */}
                         <div className="mt-10">
-                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                <Zap className="w-5 h-5 text-tech-primary" />
-                                Skill Mastery
-                            </h3>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-bold flex items-center gap-2">
+                                    <Zap className="w-5 h-5 text-tech-primary" />
+                                    Skill Mastery
+                                </h3>
+                                <button
+                                    onClick={() => setShowSkillEditor(true)}
+                                    className="text-xs text-tech-primary hover:underline flex items-center gap-1"
+                                >
+                                    <Edit2 className="w-3 h-3" />
+                                    Manage Skills
+                                </button>
+                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {Object.entries(userStats.skills).map(([skillName, skillData]) => (
@@ -269,6 +280,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                     </div>
                 </div>
             </div>
+
+            <EditSkillsModal
+                isOpen={showSkillEditor}
+                onClose={() => setShowSkillEditor(false)}
+                currentSkills={userStats.skills}
+                onSave={useGame().updateSkills}
+            />
         </>
     );
 };

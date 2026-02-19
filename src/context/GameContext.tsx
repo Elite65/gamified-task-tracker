@@ -26,6 +26,7 @@ interface GameContextType {
     resetStats: () => void;
     setStats: (stats: UserStats) => void;
     updateSkills: (newSkills: Record<string, SkillStats>) => void;
+    buyItem: (itemId: string, cost: number) => Promise<boolean>; // New: Shop System
     updateProfile: (name: string, avatarFile?: File, bannerFile?: File) => Promise<void>;
     updateGlobalBanner: (file: File) => Promise<void>;
     resetGlobalBanner: () => Promise<void>;
@@ -322,15 +323,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Internal Helper: Calculate XP Update (Functional, no side effects)
     const calculateXpUpdate = (currentStats: UserStats, difficulty: string, taskSkills: string[] = [], multiplier: number = 1): { stats: UserStats, gained: boolean } => {
+        // Calculate XP & Credits
         let xpGain = 10;
         let skillGain = 10;
+        let creditGain = 5; // Base rewards
 
-        if (difficulty === 'MEDIUM') { xpGain = 25; skillGain = 25; }
-        if (difficulty === 'HARD') { xpGain = 50; skillGain = 50; }
-        if (difficulty === 'EPIC') { xpGain = 75; skillGain = 75; }
+        if (difficulty === 'MEDIUM') { xpGain = 20; skillGain = 25; creditGain = 10; }
+        if (difficulty === 'HARD') { xpGain = 40; skillGain = 50; creditGain = 20; }
+        if (difficulty === 'EPIC') { xpGain = 100; skillGain = 75; creditGain = 50; }
 
         xpGain *= multiplier;
         skillGain *= multiplier;
+        creditGain *= multiplier;
 
         const newStats = { ...currentStats };
         // Deep copy skills
@@ -340,6 +344,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // --- User Level Logic ---
         newStats.xp = newStats.xp + xpGain;
+        newStats.credits = (newStats.credits || 0) + creditGain; // Add credits
 
         if (xpGain > 0) {
             while (newStats.xp >= newStats.nextLevelXp) {
@@ -883,11 +888,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (user) {
             try {
-                // @ts-ignore
-                await databases.updateDocument(DATABASE_ID, COLLECTIONS.USER_STATS, user.$id, {
-                    ...newStats,
+                // Sanitize payload: Remove system attributes ($id, etc.)
+                const { $id, $createdAt, $updatedAt, $permissions, $databaseId, $collectionId, ...cleanStats } = newStats as any;
+
+                // Ensure skills is stringified
+                const payload = {
+                    ...cleanStats,
                     skills: JSON.stringify(newStats.skills)
-                });
+                };
+
+                await databases.updateDocument(DATABASE_ID, COLLECTIONS.USER_STATS, user.$id, payload);
             } catch (e: any) {
                 console.error('Failed to update skills in cloud', e);
             }
@@ -1280,11 +1290,36 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateProfile,
         updateGlobalBanner,
         resetGlobalBanner,
+        buyItem: async (itemId: string, cost: number) => {
+            if (userStats.credits >= cost) {
+                const newStats = {
+                    ...userStats,
+                    credits: userStats.credits - cost,
+                    inventory: [...(userStats.inventory || []), itemId]
+                };
+                setUserStats(newStats);
+                showToast(`Item Acquired! -${cost} Credits`, { type: 'success' });
+                if (user) await syncStatsToCloud(newStats, user);
+                return true;
+            } else {
+                showToast('Insufficient Credits!', { type: 'error' });
+                return false;
+            }
+        },
         currentTheme,
         setTheme: (id: string) => {
-            setCurrentTheme(id);
-            if (user) {
-                account.updatePrefs({ themeId: id }).catch(console.error);
+            // Check if user owns the theme
+            const theme = themes.find(t => t.id === id);
+            const isDefault = !theme?.price || theme.price === 0;
+            const isOwned = userStats.inventory?.includes(id) || isDefault;
+
+            if (isOwned) {
+                setCurrentTheme(id);
+                if (user) {
+                    account.updatePrefs({ themeId: id }).catch(console.error);
+                }
+            } else {
+                showToast("You don't own this theme yet!", { type: 'error' });
             }
         },
         logout,

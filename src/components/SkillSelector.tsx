@@ -83,29 +83,59 @@ export const SkillSelector: React.FC<SkillSelectorProps> = ({ selectedSkills, on
                         </button>
                     ))}
 
-                {/* Add New Button */}
+                {/* Add New / Custom Skill Input */}
                 {isAdding ? (
-                    <form onSubmit={handleAddCustom} className="flex items-center gap-1">
-                        <input
-                            autoFocus
-                            value={newSkillText}
-                            onChange={(e) => setNewSkillText(e.target.value)}
-                            onBlur={() => {
-                                // If empty, close. If not empty, maybe user clicked away? Let's just keep it open or auto-submit?
-                                // Safer to just close if empty.
-                                if (!newSkillText.trim()) setIsAdding(false);
-                            }}
-                            className="bg-black/50 border border-tech-primary text-white text-xs rounded-full px-3 py-1.5 w-32 outline-none"
-                            placeholder="New Skill..."
-                        />
-                        <button
-                            type="submit"
-                            disabled={!newSkillText.trim()}
-                            className="p-1 bg-tech-primary rounded-full text-black hover:opacity-80 disabled:opacity-50"
-                        >
-                            <Check className="w-3 h-3" />
-                        </button>
-                    </form>
+                    <div className="relative">
+                        <form onSubmit={handleAddCustom} className="flex items-center gap-1">
+                            <input
+                                autoFocus
+                                value={newSkillText}
+                                onChange={(e) => setNewSkillText(e.target.value)}
+                                className="bg-black/50 border border-tech-primary text-white text-xs rounded-full px-3 py-1.5 w-40 outline-none"
+                                placeholder="Search or add..."
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setIsAdding(false)}
+                                className="p-1 text-gray-400 hover:text-white"
+                            >
+                                <Plus className="w-3 h-3 rotate-45" /> {/* Cancel Icon */}
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={!newSkillText.trim()}
+                                className="p-1 bg-tech-primary rounded-full text-black hover:opacity-80 disabled:opacity-50"
+                            >
+                                <Check className="w-3 h-3" />
+                            </button>
+                        </form>
+
+                        {/* Autocomplete Suggestions */}
+                        {newSkillText.trim() && (
+                            <div className="absolute top-full left-0 mt-2 w-48 bg-tech-surface border border-tech-border rounded-lg shadow-xl z-50 overflow-hidden">
+                                {existingSkills
+                                    .filter(s => s.toLowerCase().includes(newSkillText.toLowerCase()) && !selectedSkills.includes(s))
+                                    .slice(0, 5)
+                                    .map(suggestion => (
+                                        <button
+                                            key={suggestion}
+                                            onClick={() => {
+                                                toggleSkill(suggestion);
+                                                setNewSkillText('');
+                                                setIsAdding(false);
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-xs hover:bg-tech-surface-hover text-tech-text"
+                                        >
+                                            Add "{suggestion}"
+                                        </button>
+                                    ))
+                                }
+                                <div className="px-3 py-2 text-[10px] text-tech-text-secondary border-t border-tech-border/50">
+                                    Press Enter to create new: "{newSkillText}"
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 ) : (
                     <button
                         type="button"

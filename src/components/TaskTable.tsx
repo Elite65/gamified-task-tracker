@@ -28,11 +28,15 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, showTrackerColumn =
     const { updateTaskStatus, updateTask, deleteTask, trackers } = useGame();
     const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+    // Filter out calendar events
+    const displayTasks = tasks.filter(t => !t.isEvent);
+
     const getTrackerName = (trackerId: string) => {
         return trackers.find(t => t.id === trackerId)?.name || 'Unknown';
     };
 
-    if (tasks.length === 0) {
+    if (displayTasks.length === 0) {
+
         return (
             <div className="flex flex-col items-center justify-center h-64 text-gray-500 border border-dashed border-tech-border rounded-xl">
                 <AlertCircle className="w-8 h-8 mb-2 opacity-50" />
@@ -59,7 +63,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, showTrackerColumn =
                     </thead>
                     <tbody>
                         <AnimatePresence>
-                            {tasks.map((task, index) => (
+                            {displayTasks.map((task, index) => (
                                 <motion.tr
                                     key={task.id}
                                     initial={{ opacity: 0, x: -20 }}
@@ -151,7 +155,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, showTrackerColumn =
             {/* Mobile Card View */}
             <div className="md:hidden space-y-4">
                 <AnimatePresence>
-                    {tasks.map((task, index) => (
+                    {displayTasks.map((task, index) => (
                         <motion.div
                             key={task.id}
                             initial={{ opacity: 0, y: 10 }}

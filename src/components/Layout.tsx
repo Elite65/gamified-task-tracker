@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutGrid, Calendar, Settings, CheckSquare, BookOpen, Clock, LogIn, LogOut, Camera, X, Repeat, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, BarChart2, Calendar, Settings, ChevronRight, Bell, Menu, X, Rocket, Repeat, BookOpen, ShoppingCart, LogOut, Camera, Lock, Clock, LayoutGrid, LogIn } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { useTime } from '../hooks/useTime';
 import { avatars, storage, BUCKET_ID } from '../lib/appwrite';
@@ -61,7 +61,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     };
 
     const navItems = [
-        { icon: LayoutGrid, label: 'Dashboard', path: '/' },
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: Calendar, label: 'Calendar', path: '/calendar' },
         { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
         { icon: Repeat, label: 'Habits', path: '/habits' },
@@ -233,7 +233,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/' ? 'text-tech-primary' : 'text-gray-500'}`}
                 >
                     <div className={`p-2 rounded-xl transition-all ${location.pathname === '/' ? 'bg-tech-primary/10' : ''}`}>
-                        <LayoutGrid className="w-6 h-6" strokeWidth={location.pathname === '/' ? 2.5 : 2} />
+                        <LayoutDashboard className="w-6 h-6" strokeWidth={location.pathname === '/' ? 2.5 : 2} />
                     </div>
                     {location.pathname === '/' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
                 </Link>
