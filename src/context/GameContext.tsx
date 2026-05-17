@@ -240,8 +240,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         console.warn('Failed to parse recurrence for task', doc.$id);
                     }
                 }
+                
+                let subtasks = undefined;
+                if (doc.subtasks) {
+                    try {
+                        subtasks = JSON.parse(doc.subtasks);
+                    } catch (e) {
+                        console.warn('Failed to parse subtasks for task', doc.$id);
+                    }
+                }
 
-                return { ...doc, id: doc.$id, skills: cleanSkills, quadrant, recurrence } as any;
+                return { ...doc, id: doc.$id, skills: cleanSkills, quadrant, recurrence, subtasks } as any;
             }));
 
             // Load Trackers
@@ -516,6 +525,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (recurrence) {
                     finalPayload.recurrence = JSON.stringify(recurrence);
                 }
+                if (newTask.subtasks) {
+                    finalPayload.subtasks = JSON.stringify(newTask.subtasks);
+                }
+                if (newTask.progress !== undefined) {
+                    finalPayload.progress = newTask.progress;
+                }
 
                 await databases.createDocument(DATABASE_ID, COLLECTIONS.TASKS, newTask.id, finalPayload);
             } catch (e: any) {
@@ -624,6 +639,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 if (updates.recurrence) {
                     payload.recurrence = JSON.stringify(updates.recurrence);
+                }
+                if (updates.subtasks) {
+                    payload.subtasks = JSON.stringify(updates.subtasks);
+                }
+                if (updates.progress !== undefined) {
+                    payload.progress = updates.progress;
                 }
 
                 if (updates.quadrant !== undefined || updates.skills !== undefined) {
