@@ -20,7 +20,7 @@ export const themes: Theme[] = [
     {
         id: 'default',
         name: 'Default (Dark)',
-        price: 500,
+        price: 650,
         defaultBanner: '/banners/default-banner.png',
         colors: {
             background: '#09090b',
@@ -36,7 +36,7 @@ export const themes: Theme[] = [
     {
         id: 'soft-autumn',
         name: 'Soft Autumn',
-        price: 500,
+        price: 600,
         defaultBanner: '/banners/soft-autumn.png',
         colors: {
             background: "url(\"data:image/svg+xml;utf8,<svg width='500' height='500' viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'><g fill='none' stroke='%235D4037' stroke-width='1.2' opacity='0.3'><!-- Center-ish Oak --><path d='M50,150 Q50,110 50,50 M50,130 Q30,120 35,100 T30,70 T40,50 Q45,40 50,30 Q55,40 60,50 Q70,60 65,70 T70,100 Q75,120 50,130' transform='translate(200, 220) rotate(15 50 90) scale(1.4)' stroke-linecap='round' stroke-linejoin='round'/><!-- Top Left Maple --><path d='M100,130 C100,130 100,80 100,40 M100,100 C80,90 60,80 40,90 C50,70 45,50 60,40 C70,45 80,50 90,40 C95,30 98,20 100,10 C102,20 105,30 110,40 C120,50 130,45 140,40 C155,50 150,70 160,90 C140,80 120,90 100,100' transform='translate(-30, 20) rotate(-25 100 80) scale(1.1)' stroke-linecap='round' stroke-linejoin='round'/><!-- Top Right Birch/Ash --><path d='M170,170 L170,50 M170,80 L140,70 M170,110 L140,100 M170,140 L140,130 M170,70 L200,60 M170,100 L200,90 M170,130 L200,120 M170,50 Q170,30 170,20' transform='translate(280, 20) rotate(45 170 110) scale(0.9)' stroke-linecap='round'/><!-- Bottom Left Oak --><path d='M50,150 Q50,110 50,50 M50,130 Q30,120 35,100 T30,70 T40,50 Q45,40 50,30 Q55,40 60,50 Q70,60 65,70 T70,100 Q75,120 50,130' transform='translate(10, 350) rotate(-40 50 90) scale(1.2)' stroke-linecap='round' stroke-linejoin='round'/><!-- Bottom Right Maple --><path d='M100,130 C100,130 100,80 100,40 M100,100 C80,90 60,80 40,90 C50,70 45,50 60,40 C70,45 80,50 90,40 C95,30 98,20 100,10 C102,20 105,30 110,40 C120,50 130,45 140,40 C155,50 150,70 160,90 C140,80 120,90 100,100' transform='translate(350, 300) rotate(10 100 80) scale(1.3)' stroke-linecap='round' stroke-linejoin='round'/><!-- Small Filler 1 --><path d='M100,100 C90,100 85,90 85,80 C85,70 90,60 100,60 C110,60 115,70 115,80 C115,90 110,100 100,100 M100,80 L100,120' transform='translate(150, 100) rotate(90 100 90) scale(0.6)'/><!-- Small Filler 2 --><path d='M100,100 C90,100 85,90 85,80 C85,70 90,60 100,60 C110,60 115,70 115,80 C115,90 110,100 100,100 M100,80 L100,120' transform='translate(400, 150) rotate(-20 100 90) scale(0.7)'/><!-- Small Filler 3 --><path d='M100,100 C90,100 85,90 85,80 C85,70 90,60 100,60 C110,60 115,70 115,80 C115,90 110,100 100,100 M100,80 L100,120' transform='translate(180, 420) rotate(180 100 90) scale(0.6)'/></g></svg>\") repeat, linear-gradient(180deg, #EAE1D5 0%, #E6D2B5 100%)",
@@ -51,7 +51,7 @@ export const themes: Theme[] = [
     {
         id: 'spring-shower',
         name: 'Spring Shower',
-        price: 500,
+        price: 400,
         defaultBanner: '/banners/spring-shower.png',
         colors: {
             // Dynamic Background: Premium Washi Paper (URL Encoded UTF-8) + Morning Dawn Gradient
@@ -68,7 +68,7 @@ export const themes: Theme[] = [
     {
         id: 'frigid-winter',
         name: 'Frigid Winter',
-        price: 500,
+        price: 350,
         defaultBanner: '/banners/frigid-winter.png',
         colors: {
             // Dynamic Background: Original Snowflakes (White, Random Scatter 500px) + Dark Winter Night Gradient
@@ -85,7 +85,7 @@ export const themes: Theme[] = [
     {
         id: 'forest-flow',
         name: 'Forest Flow',
-        price: 500,
+        price: 625,
         defaultBanner: '/banners/forest-flow.png',
         colors: {
             background: '#001400', // Original Dark Green (No Effects)
@@ -101,7 +101,7 @@ export const themes: Theme[] = [
     {
         id: 'eclipse-skies',
         name: 'Eclipse Skies',
-        price: 500,
+        price: 450,
         defaultBanner: '/banners/eclipse-skies.png',
         colors: {
             background: `

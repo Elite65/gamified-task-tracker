@@ -34,6 +34,35 @@ const Shop = () => {
                 </div>
             </div>
 
+            {/* How to Earn Credits */}
+            <div className="bg-tech-surface p-6 rounded-2xl border border-tech-border mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                <h3 className="font-bold text-lg mb-3 text-amber-500 flex items-center gap-2">
+                    <Coins className="w-5 h-5" />
+                    How to Earn Credits
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                    <div className="p-3 bg-black/20 rounded-xl border border-tech-border/50">
+                        <span className="text-[#4ade80] font-bold block mb-1">EASY</span>
+                        +5 Credits
+                    </div>
+                    <div className="p-3 bg-black/20 rounded-xl border border-tech-border/50">
+                        <span className="text-[#60a5fa] font-bold block mb-1">MEDIUM</span>
+                        +10 Credits
+                    </div>
+                    <div className="p-3 bg-black/20 rounded-xl border border-tech-border/50">
+                        <span className="text-[#fb923c] font-bold block mb-1">HARD</span>
+                        +20 Credits
+                    </div>
+                    <div className="p-3 bg-black/20 rounded-xl border border-tech-border/50">
+                        <span className="text-[#c084fc] font-bold block mb-1">EPIC</span>
+                        +50 Credits
+                    </div>
+                </div>
+                <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20 text-amber-200/80 text-sm">
+                    <strong>Pro Tip:</strong> Complete missions during your active <strong>Flux Zone</strong> (set in your Day Planner) to earn <span className="text-amber-400 font-bold">2x Credits</span>!
+                </div>
+            </div>
+
             {/* Themes Section */}
             <section>
                 <div className="flex items-center gap-3 mb-6">
