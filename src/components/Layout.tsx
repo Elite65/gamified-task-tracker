@@ -67,6 +67,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         { icon: Repeat, label: 'Habits', path: '/habits' },
         { icon: BookOpen, label: 'Courses', path: '/courses' },
         { icon: BarChart2, label: 'Data', path: '/stats' },
+        { icon: ShoppingCart, label: 'Shop', path: '/shop' },
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 
@@ -317,7 +318,18 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     {location.pathname === '/stats' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
                 </Link>
 
-                {/* 5. Settings */}
+                {/* 7. Shop */}
+                <Link
+                    to="/shop"
+                    className={`flex flex-col items-center gap-1 flex-1 hidden sm:flex ${location.pathname === '/shop' ? 'text-tech-primary' : 'text-gray-500'}`}
+                >
+                    <div className={`p-2 rounded-xl transition-all ${location.pathname === '/shop' ? 'bg-tech-primary/10' : ''}`}>
+                        <ShoppingCart className="w-6 h-6" strokeWidth={location.pathname === '/shop' ? 2.5 : 2} />
+                    </div>
+                    {location.pathname === '/shop' && <span className="w-1 h-1 bg-tech-primary rounded-full mb-1" />}
+                </Link>
+
+                {/* 8. Settings */}
                 <Link
                     to="/settings"
                     className={`flex flex-col items-center gap-1 flex-1 ${location.pathname === '/settings' ? 'text-tech-primary' : 'text-gray-500'}`}

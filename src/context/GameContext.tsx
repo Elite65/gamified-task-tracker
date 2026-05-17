@@ -146,7 +146,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [reminders, setReminders] = useState<Reminder[]>([]);
     const [userStats, setUserStats] = useState<UserStats>(safeParse('gtt_stats', JSON.parse(JSON.stringify(INITIAL_STATS))));
     const [dayPlans, setDayPlans] = useState<DayPlan[]>([]);
-    const [currentTheme, setCurrentTheme] = useState<string>('default');
+    const [currentTheme, setCurrentTheme] = useState<string>('cold-nights');
 
     // Apply Theme Colors
     useEffect(() => {
@@ -164,12 +164,32 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!theme.colors.calendarBorder) {
             root.style.setProperty('--color-calendar-border', theme.colors.border);
         }
+
+        // Set data-theme attribute for CSS scoping
+        root.setAttribute('data-theme', theme.id);
     }, [currentTheme, themes]);
 
     // 1. Check Auth Status on Mount
     useEffect(() => {
         checkAuth();
     }, []);
+
+    // Enforce Theme Ownership
+    useEffect(() => {
+        if (!loading && currentTheme !== 'cold-nights') {
+            const themeConfig = themes.find(t => t.id === currentTheme);
+            if (themeConfig && themeConfig.price > 0) {
+                const ownsTheme = userStats.inventory?.includes(currentTheme);
+                if (!ownsTheme) {
+                    setCurrentTheme('cold-nights');
+                    showToast('Theme locked. Reverted to Cold Nights.', { type: 'info' });
+                    if (user) {
+                        account.updatePrefs({ ...user.prefs, themeId: 'cold-nights' }).catch(console.error);
+                    }
+                }
+            }
+        }
+    }, [currentTheme, userStats.inventory, loading, user]);
 
     const checkAuth = async () => {
         try {

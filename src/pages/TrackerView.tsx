@@ -197,7 +197,7 @@ export const TrackerView: React.FC = () => {
             )}
 
             {/* Board */}
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto pb-24">
                 <TaskTable tasks={trackerTasks} />
             </div>
         </div>

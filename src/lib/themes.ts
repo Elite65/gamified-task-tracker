@@ -20,7 +20,7 @@ export const themes: Theme[] = [
     {
         id: 'default',
         name: 'Default (Dark)',
-        price: 0,
+        price: 500,
         defaultBanner: '/banners/default-banner.png',
         colors: {
             background: '#09090b',
@@ -68,6 +68,7 @@ export const themes: Theme[] = [
     {
         id: 'frigid-winter',
         name: 'Frigid Winter',
+        price: 500,
         defaultBanner: '/banners/frigid-winter.png',
         colors: {
             // Dynamic Background: Original Snowflakes (White, Random Scatter 500px) + Dark Winter Night Gradient
@@ -84,6 +85,7 @@ export const themes: Theme[] = [
     {
         id: 'forest-flow',
         name: 'Forest Flow',
+        price: 500,
         defaultBanner: '/banners/forest-flow.png',
         colors: {
             background: '#001400', // Original Dark Green (No Effects)
@@ -99,6 +101,7 @@ export const themes: Theme[] = [
     {
         id: 'eclipse-skies',
         name: 'Eclipse Skies',
+        price: 500,
         defaultBanner: '/banners/eclipse-skies.png',
         colors: {
             background: `
@@ -118,6 +121,7 @@ export const themes: Theme[] = [
     {
         id: 'cold-nights',
         name: 'Cold Nights',
+        price: 0,
         defaultBanner: '/banners/cold-nights.png',
         colors: {
             background: "url('/bg-stars.svg') repeat, #05091e", // Royal Dark Blue Base + Stars

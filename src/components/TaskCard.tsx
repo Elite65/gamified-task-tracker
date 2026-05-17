@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, Circle, Clock, Tag, MoreVertical, Edit2, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Tag, MoreVertical, Edit2, AlertTriangle, ChevronDown, ChevronUp, CheckSquare, Square, Check } from 'lucide-react';
 import { Task } from '../types';
 import { useGame } from '../context/GameContext';
 import { EditTaskModal } from './EditTaskModal';
@@ -14,6 +14,37 @@ interface TaskCardProps {
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onEdit, onDelete }) => {
     const { userStats } = useGame();
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isSubtasksExpanded, setIsSubtasksExpanded] = useState(false);
+
+    // Calculate progress based on subtasks if they exist
+    const hasSubtasks = task.subtasks && task.subtasks.length > 0;
+    const completedSubtasks = hasSubtasks ? task.subtasks!.filter(st => st.isCompleted).length : 0;
+    const calculatedProgress = hasSubtasks 
+        ? Math.round((completedSubtasks / task.subtasks!.length) * 100)
+        : (task.progress || 0);
+
+    // Helper to toggle a subtask and update task state automatically
+    const handleToggleSubtask = (subtaskId: string) => {
+        if (!task.subtasks) return;
+        
+        const newSubtasks = task.subtasks.map(st => 
+            st.id === subtaskId ? { ...st, isCompleted: !st.isCompleted } : st
+        );
+        
+        const newCompleted = newSubtasks.filter(st => st.isCompleted).length;
+        const newProgress = Math.round((newCompleted / newSubtasks.length) * 100);
+        
+        let newStatus = task.status;
+        if (newCompleted === 0) newStatus = 'YET_TO_START';
+        else if (newCompleted === newSubtasks.length) newStatus = 'COMPLETED';
+        else newStatus = 'IN_PROGRESS';
+
+        onEdit(task.id, { 
+            subtasks: newSubtasks, 
+            progress: newProgress,
+            status: newStatus 
+        });
+    };
 
     // Check for legacy skills
     const validSkillNames = Object.values(userStats.skills || {}).map(s => s.name);
@@ -134,6 +165,57 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onEdit
                 {task.description && (
                     <div className="mt-3 pt-3 border-t border-tech-border/30 text-xs text-tech-text-secondary whitespace-pre-wrap">
                         {task.description}
+                    </div>
+                )}
+
+                {/* Subtasks Summary & Expand */}
+                {hasSubtasks && (
+                    <div className="mt-3 pt-3 border-t border-tech-border/30">
+                        <button 
+                            onClick={() => setIsSubtasksExpanded(!isSubtasksExpanded)}
+                            className="flex items-center justify-between w-full text-xs text-tech-text-secondary hover:text-tech-text transition-colors"
+                        >
+                            <span className="flex items-center gap-1.5 font-medium">
+                                <Check className="w-3.5 h-3.5" />
+                                {completedSubtasks} / {task.subtasks!.length} Subtasks
+                            </span>
+                            {isSubtasksExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </button>
+                        
+                        {isSubtasksExpanded && (
+                            <div className="mt-2 space-y-1.5 animate-in slide-in-from-top-2 duration-200">
+                                {task.subtasks!.map(subtask => (
+                                    <div 
+                                        key={subtask.id} 
+                                        className="flex items-start gap-2 p-1.5 rounded hover:bg-white/5 cursor-pointer transition-colors"
+                                        onClick={() => handleToggleSubtask(subtask.id)}
+                                    >
+                                        <button className={`mt-0.5 shrink-0 transition-colors ${subtask.isCompleted ? 'text-tech-primary' : 'text-gray-500'}`}>
+                                            {subtask.isCompleted ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                                        </button>
+                                        <span className={`text-xs ${subtask.isCompleted ? 'text-gray-500 line-through' : 'text-tech-text'}`}>
+                                            {subtask.title}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Progress Bar */}
+                {((hasSubtasks) || (task.progress !== undefined && task.progress > 0)) && (
+                    <div className="mt-4">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] text-tech-text-secondary font-mono uppercase">Progress</span>
+                            <span className="text-[10px] text-tech-primary font-mono">{calculatedProgress}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-tech-border/30 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-tech-primary transition-all duration-500 rounded-full" 
+                                style={{ width: `${calculatedProgress}%` }}
+                            />
+                        </div>
                     </div>
                 )}
             </div>

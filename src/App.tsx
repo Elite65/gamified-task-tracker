@@ -12,6 +12,7 @@ import { CoursesPage } from './pages/CoursesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
 import { AppAnnouncement } from './components/AppAnnouncement';
+import Shop from './pages/Shop';
 
 import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
@@ -58,6 +59,7 @@ function App() {
                             <Route path="/habits" element={<HabitsPage />} />
                             <Route path="/courses" element={<CoursesPage />} />
                             <Route path="/stats" element={<StatsPage />} />
+                            <Route path="/shop" element={<Shop />} />
                             <Route path="/settings" element={<SettingsPage />} />
                             <Route path="/login" element={<LoginPage />} />
                             <Route path="/signup" element={<SignupPage />} />

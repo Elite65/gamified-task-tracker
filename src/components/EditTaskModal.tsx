@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Task, Difficulty, TaskStatus } from '../types';
+import { Task, Difficulty, TaskStatus, Subtask } from '../types';
 import { useGame } from '../context/GameContext';
-import { X, Save, Calendar, Target, Zap, Activity, FileText, Trash2 } from 'lucide-react';
+import { X, Save, Calendar, Target, Zap, Activity, FileText, Trash2, Plus, CheckSquare, Square } from 'lucide-react';
 import { Dropdown } from './Dropdown';
 import { DateInput } from './DateInput';
 import { TimeInput } from './TimeInput';
@@ -25,6 +25,43 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
     const [quadrant, setQuadrant] = useState<EisenhowerQuadrant | undefined>(task.quadrant);
     const [selectedSkills, setSelectedSkills] = useState<string[]>(task.skills);
     const [description, setDescription] = useState(task.description || '');
+
+    // Subtasks and Progress
+    const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks || []);
+    const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+    const [progress, setProgress] = useState(task.progress || 0);
+
+    const handleAddSubtask = () => {
+        if (newSubtaskTitle.trim()) {
+            const newSubtasks = [...subtasks, { id: Date.now().toString() + Math.random(), title: newSubtaskTitle.trim(), isCompleted: false }];
+            setSubtasks(newSubtasks);
+            setNewSubtaskTitle('');
+            updateProgressAndStatus(newSubtasks);
+        }
+    };
+
+    const handleRemoveSubtask = (id: string) => {
+        const newSubtasks = subtasks.filter(st => st.id !== id);
+        setSubtasks(newSubtasks);
+        updateProgressAndStatus(newSubtasks);
+    };
+
+    const handleToggleSubtask = (id: string) => {
+        const newSubtasks = subtasks.map(st => st.id === id ? { ...st, isCompleted: !st.isCompleted } : st);
+        setSubtasks(newSubtasks);
+        updateProgressAndStatus(newSubtasks);
+    };
+
+    const updateProgressAndStatus = (currentSubtasks: Subtask[]) => {
+        if (currentSubtasks.length === 0) return;
+        const completed = currentSubtasks.filter(st => st.isCompleted).length;
+        const newProgress = Math.round((completed / currentSubtasks.length) * 100);
+        setProgress(newProgress);
+        
+        if (completed === 0) setStatus('YET_TO_START');
+        else if (completed === currentSubtasks.length) setStatus('COMPLETED');
+        else setStatus('IN_PROGRESS');
+    };
 
     // ... Date Management ...
     const formatDate = (timestamp?: number) => {
@@ -79,7 +116,9 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
             quadrant,
             skills: selectedSkills,
             description,
-            dueDate: newDueDate
+            dueDate: newDueDate,
+            subtasks: subtasks.length > 0 ? subtasks : undefined,
+            progress: subtasks.length > 0 ? 0 : progress
         });
 
         onClose();
@@ -146,7 +185,12 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
                             label="Status"
                             value={status}
                             options={statusOptions}
-                            onChange={(val) => setStatus(val as TaskStatus)}
+                            onChange={(val) => {
+                                if (subtasks.length > 0) return; // Prevent manual status change if driven by subtasks
+                                setStatus(val as TaskStatus);
+                                if (val === 'YET_TO_START') setProgress(0);
+                                if (val === 'COMPLETED') setProgress(100);
+                            }}
                         />
                     </div>
 
@@ -175,6 +219,80 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose, onD
                         selectedSkills={selectedSkills}
                         onChange={setSelectedSkills}
                     />
+
+                    {/* Subtasks */}
+                    <div>
+                        <label className="block text-xs font-mono text-gray-400 mb-2 uppercase">Subtasks</label>
+                        <div className="space-y-2 mb-2">
+                            {subtasks.map((st) => (
+                                <div key={st.id} className="flex items-center gap-2 bg-black/20 p-2 rounded-lg border border-tech-border/50">
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleToggleSubtask(st.id)}
+                                        className={`shrink-0 transition-colors ${st.isCompleted ? 'text-tech-primary' : 'text-gray-500'}`}
+                                    >
+                                        {st.isCompleted ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+                                    </button>
+                                    <span className={`flex-1 text-sm ${st.isCompleted ? 'text-gray-500 line-through' : 'text-tech-text'}`}>
+                                        {st.title}
+                                    </span>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => handleRemoveSubtask(st.id)}
+                                        className="text-gray-500 hover:text-red-400 transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <input
+                                value={newSubtaskTitle}
+                                onChange={e => setNewSubtaskTitle(e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleAddSubtask();
+                                    }
+                                }}
+                                className="flex-1 bg-black/30 border border-tech-border rounded-lg p-2 text-sm focus:border-tech-primary outline-none text-white"
+                                placeholder="Add a subtask..."
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddSubtask}
+                                disabled={!newSubtaskTitle.trim()}
+                                className="p-2 bg-tech-surface border border-tech-border rounded-lg hover:border-tech-primary hover:text-tech-primary transition-colors disabled:opacity-50"
+                            >
+                                <Plus className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Manual Progress Slider (Only if no subtasks) */}
+                    {subtasks.length === 0 && (
+                        <div>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="block text-xs font-mono text-gray-400 uppercase">Manual Progress</label>
+                                <span className="text-xs font-mono text-tech-primary">{progress}%</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={progress}
+                                onChange={(e) => {
+                                    const val = Number(e.target.value);
+                                    setProgress(val);
+                                    if (val === 0) setStatus('YET_TO_START');
+                                    else if (val === 100) setStatus('COMPLETED');
+                                    else setStatus('IN_PROGRESS');
+                                }}
+                                className="w-full accent-tech-primary"
+                            />
+                        </div>
+                    )}
 
                     {/* Notes */}
                     <div>

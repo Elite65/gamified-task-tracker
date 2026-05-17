@@ -12,6 +12,12 @@ export interface RecurrenceConfig {
     monthDay?: { month: number, day: number }; // For Yearly
 }
 
+export interface Subtask {
+    id: string;
+    title: string;
+    isCompleted: boolean;
+}
+
 export interface Task {
     id: string;
     title: string;
@@ -26,6 +32,8 @@ export interface Task {
     createdAt: number;
     dueDate?: number; // Timestamp
     endTime?: number; // Timestamp or duration
+    subtasks?: Subtask[];
+    progress?: number; // Manual progress 0-100
     $id?: string;
     $createdAt?: string;
     $updatedAt?: string;
